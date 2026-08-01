@@ -15,8 +15,8 @@ import (
 
 // Config is the root configuration struct for SaaSKit.
 type Config struct {
-	Env    string `koanf:"env"`
-	Port   int    `koanf:"port"`
+	Env     string `koanf:"env"`
+	Port    int    `koanf:"port"`
 	BaseURL string `koanf:"base_url"`
 
 	Database DatabaseConfig `koanf:"database"`
@@ -25,7 +25,7 @@ type Config struct {
 	OAuth    OAuthConfig    `koanf:"oauth"`
 	Log      LogConfig      `koanf:"log"`
 
-	ServerSecret       string `koanf:"server_secret"`
+	ServerSecret        string `koanf:"server_secret"`
 	EncryptionMasterKey string `koanf:"encryption_master_key"`
 
 	RateLimit RateLimitConfig `koanf:"rate_limit"`
@@ -71,8 +71,8 @@ type Argon2Config struct {
 
 // OAuthConfig holds OAuth provider credentials.
 type OAuthConfig struct {
-	Google   OAuthProviderConfig `koanf:"google"`
-	GitHub   OAuthProviderConfig `koanf:"github"`
+	Google OAuthProviderConfig `koanf:"google"`
+	GitHub OAuthProviderConfig `koanf:"github"`
 }
 
 // OAuthProviderConfig holds credentials for a single OAuth provider.
@@ -110,31 +110,31 @@ func Load(configPath string) (*Config, error) {
 
 	// Defaults
 	defaults := map[string]interface{}{
-		"env":                   "development",
-		"port":                  8080,
-		"base_url":              "http://localhost:8080",
-		"database.host":         "localhost",
-		"database.port":         5432,
-		"database.user":         "saaskit",
-		"database.password":     "saaskit",
-		"database.name":         "saaskit",
-		"database.sslmode":      "disable",
-		"database.max_conns":    25,
-		"database.min_conns":    5,
-		"jwt.algorithm":         "RS256",
-		"jwt.key_path":          "./keys",
-		"jwt.issuer":            "http://localhost:8080",
-		"jwt.access_ttl":        15 * time.Minute,
-		"jwt.refresh_ttl":       7 * 24 * time.Hour,
-		"argon2.memory":         65536,
-		"argon2.iterations":     3,
-		"argon2.parallelism":    4,
-		"argon2.salt_length":    16,
-		"argon2.key_length":     32,
-		"log.level":             "info",
-		"log.format":            "json",
-		"rate_limit.auth_rpm":   10,
-		"rate_limit.api_rpm":    60,
+		"env":                 "development",
+		"port":                8080,
+		"base_url":            "http://localhost:8080",
+		"database.host":       "localhost",
+		"database.port":       5432,
+		"database.user":       "saaskit",
+		"database.password":   "saaskit",
+		"database.name":       "saaskit",
+		"database.sslmode":    "disable",
+		"database.max_conns":  25,
+		"database.min_conns":  5,
+		"jwt.algorithm":       "RS256",
+		"jwt.key_path":        "./keys",
+		"jwt.issuer":          "http://localhost:8080",
+		"jwt.access_ttl":      15 * time.Minute,
+		"jwt.refresh_ttl":     7 * 24 * time.Hour,
+		"argon2.memory":       65536,
+		"argon2.iterations":   3,
+		"argon2.parallelism":  4,
+		"argon2.salt_length":  16,
+		"argon2.key_length":   32,
+		"log.level":           "info",
+		"log.format":          "json",
+		"rate_limit.auth_rpm": 10,
+		"rate_limit.api_rpm":  60,
 	}
 	for key, val := range defaults {
 		_ = k.Set(key, val)
@@ -150,9 +150,9 @@ func Load(configPath string) (*Config, error) {
 
 	// Environment variables (SAASKIT_ prefix, e.g. SAASKIT_DATABASE_URL → database.url)
 	err := k.Load(env.Provider("SAASKIT_", ".", func(s string) string {
-		return strings.Replace(
+		return strings.ReplaceAll(
 			strings.ToLower(strings.TrimPrefix(s, "SAASKIT_")),
-			"_", ".", -1,
+			"_", ".",
 		)
 	}), nil)
 	if err != nil {
