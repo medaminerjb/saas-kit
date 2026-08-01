@@ -12,7 +12,12 @@ services:
       SAASKIT_ENV: development
       SAASKIT_PORT: "8080"
       SAASKIT_BASE_URL: http://localhost:8080
-      SAASKIT_DATABASE_URL: postgres://saaskit:saaskit@postgres:5432/saaskit?sslmode=disable
+      SAASKIT_DATABASE_HOST: postgres
+      SAASKIT_DATABASE_PORT: "5432"
+      SAASKIT_DATABASE_USER: saaskit
+      SAASKIT_DATABASE_PASSWORD: saaskit
+      SAASKIT_DATABASE_NAME: saaskit
+      SAASKIT_DATABASE_SSLMODE: disable
       SAASKIT_SERVER_SECRET: dev-secret-do-not-use-in-production-000000000000
       SAASKIT_ENCRYPTION_MASTER_KEY: 6368616e676520746869732070617373776f726420746f206120736563726574
       SAASKIT_JWT_ALGORITHM: RS256

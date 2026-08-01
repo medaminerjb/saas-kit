@@ -33,9 +33,22 @@ type Config struct {
 
 // DatabaseConfig holds PostgreSQL connection settings.
 type DatabaseConfig struct {
-	URL      string `koanf:"url"`
+	Host     string `koanf:"host"`
+	Port     int    `koanf:"port"`
+	User     string `koanf:"user"`
+	Password string `koanf:"password"`
+	Name     string `koanf:"name"`
+	SSLMode  string `koanf:"sslmode"`
 	MaxConns int32  `koanf:"max_conns"`
 	MinConns int32  `koanf:"min_conns"`
+}
+
+// DSN builds a PostgreSQL connection string from individual fields.
+func (d DatabaseConfig) DSN() string {
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		d.User, d.Password, d.Host, d.Port, d.Name, d.SSLMode,
+	)
 }
 
 // JWTConfig holds JWT signing configuration.
@@ -100,6 +113,12 @@ func Load(configPath string) (*Config, error) {
 		"env":                   "development",
 		"port":                  8080,
 		"base_url":              "http://localhost:8080",
+		"database.host":         "localhost",
+		"database.port":         5432,
+		"database.user":         "saaskit",
+		"database.password":     "saaskit",
+		"database.name":         "saaskit",
+		"database.sslmode":      "disable",
 		"database.max_conns":    25,
 		"database.min_conns":    5,
 		"jwt.algorithm":         "RS256",
@@ -153,8 +172,14 @@ func Load(configPath string) (*Config, error) {
 }
 
 func (c *Config) validate() error {
-	if c.Database.URL == "" {
-		return fmt.Errorf("SAASKIT_DATABASE_URL is required")
+	if c.Database.Host == "" {
+		return fmt.Errorf("SAASKIT_DATABASE_HOST is required")
+	}
+	if c.Database.User == "" {
+		return fmt.Errorf("SAASKIT_DATABASE_USER is required")
+	}
+	if c.Database.Name == "" {
+		return fmt.Errorf("SAASKIT_DATABASE_NAME is required")
 	}
 	if c.IsProduction() {
 		if c.ServerSecret == "" || c.ServerSecret == "change-me-in-production-use-64-random-bytes" {

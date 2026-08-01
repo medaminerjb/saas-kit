@@ -53,7 +53,7 @@ func run() error {
 
 	// ─── Database ─────────────────────────────────────
 	pool, err := database.Connect(ctx, database.Config{
-		URL:      cfg.Database.URL,
+		URL:      cfg.Database.DSN(),
 		MaxConns: cfg.Database.MaxConns,
 		MinConns: cfg.Database.MinConns,
 	})
@@ -66,7 +66,7 @@ func run() error {
 	// ─── Run Migrations ───────────────────────────────
 	if cfg.IsDevelopment() {
 		logger.Info("running migrations (dev mode)")
-		if err := runMigrations(cfg.Database.URL); err != nil {
+		if err := runMigrations(cfg.Database.DSN()); err != nil {
 			return fmt.Errorf("running migrations: %w", err)
 		}
 	}

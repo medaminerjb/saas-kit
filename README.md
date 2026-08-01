@@ -127,7 +127,12 @@ Configuration is loaded from environment variables (prefix `SAASKIT_`) with opti
 | `SAASKIT_ENV` | Environment (`development`, `production`) | `development` |
 | `SAASKIT_PORT` | HTTP server port | `8080` |
 | `SAASKIT_BASE_URL` | Public base URL for callbacks | `http://localhost:8080` |
-| `SAASKIT_DATABASE_URL` | PostgreSQL connection string | — |
+| `SAASKIT_DATABASE_HOST` | PostgreSQL host | `localhost` |
+| `SAASKIT_DATABASE_PORT` | PostgreSQL port | `5432` |
+| `SAASKIT_DATABASE_USER` | PostgreSQL user | `saaskit` |
+| `SAASKIT_DATABASE_PASSWORD` | PostgreSQL password | — |
+| `SAASKIT_DATABASE_NAME` | PostgreSQL database name | `saaskit` |
+| `SAASKIT_DATABASE_SSLMODE` | SSL mode (`disable`, `require`, `verify-full`) | `disable` |
 | `SAASKIT_JWT_ALGORITHM` | Signing algorithm (`RS256`, `ES256`, `EdDSA`) | `RS256` |
 | `SAASKIT_JWT_KEY_PATH` | Path to signing keys | `./keys` |
 | `SAASKIT_SERVER_SECRET` | HMAC secret for token hashing | — |

@@ -49,7 +49,12 @@ jobs:
         run: go test -v -race -count=1 -short -coverprofile=coverage.out ./...
       - name: Run integration tests
         env:
-          SAASKIT_DATABASE_URL: postgres://saaskit:saaskit@localhost:5432/saaskit_test?sslmode=disable
+          SAASKIT_DATABASE_HOST: localhost
+          SAASKIT_DATABASE_PORT: "5432"
+          SAASKIT_DATABASE_USER: saaskit
+          SAASKIT_DATABASE_PASSWORD: saaskit
+          SAASKIT_DATABASE_NAME: saaskit_test
+          SAASKIT_DATABASE_SSLMODE: disable
           SAASKIT_SERVER_SECRET: ci-test-secret-00000000000000000000000000000000000000000000
           SAASKIT_ENCRYPTION_MASTER_KEY: 6368616e676520746869732070617373776f726420746f206120736563726574
         run: go test -v -race -count=1 -run Integration ./...
