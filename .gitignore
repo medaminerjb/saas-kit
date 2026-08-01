@@ -1,0 +1,52 @@
+# Binaries
+/bin/
+/saaskit
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build
+/dist/
+
+# Test
+*.test
+*.out
+coverage.html
+coverage.txt
+
+# Go
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Keys (never commit real keys)
+keys/*.pem
+keys/*.pub
+keys/*.key
+!keys/.gitkeep
+!keys/README.md
+
+# Docker volumes
+pgdata/
+
+# sqlc generated (track in repo, but mark for awareness)
+# sqlc/generated/ is tracked
+
+# Air (hot reload)
+tmp/

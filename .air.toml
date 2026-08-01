@@ -1,0 +1,19 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  bin = "./tmp/saaskit"
+  cmd = "go build -o ./tmp/saaskit ./cmd/saaskit"
+  delay = 1000
+  exclude_dir = ["tmp", "vendor", "node_modules", "keys", ".git"]
+  exclude_regex = ["_test\\.go$"]
+  include_ext = ["go", "html", "yaml", "yml"]
+  kill_delay = "0s"
+  send_interrupt = false
+  stop_on_error = true
+
+[log]
+  time = false
+
+[misc]
+  clean_on_exit = true

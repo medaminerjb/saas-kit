@@ -1,0 +1,45 @@
+services:
+  saaskit:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      SAASKIT_ENV: development
+      SAASKIT_PORT: "8080"
+      SAASKIT_BASE_URL: http://localhost:8080
+      SAASKIT_DATABASE_URL: postgres://saaskit:saaskit@postgres:5432/saaskit?sslmode=disable
+      SAASKIT_SERVER_SECRET: dev-secret-do-not-use-in-production-000000000000
+      SAASKIT_ENCRYPTION_MASTER_KEY: 6368616e676520746869732070617373776f726420746f206120736563726574
+      SAASKIT_JWT_ALGORITHM: RS256
+      SAASKIT_JWT_KEY_PATH: /app/keys
+      SAASKIT_JWT_ISSUER: http://localhost:8080
+      SAASKIT_LOG_LEVEL: debug
+      SAASKIT_LOG_FORMAT: text
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: saaskit
+      POSTGRES_PASSWORD: saaskit
+      POSTGRES_DB: saaskit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saaskit"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  go-mod-cache:
