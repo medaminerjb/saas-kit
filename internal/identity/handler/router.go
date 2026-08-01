@@ -16,9 +16,9 @@ import (
 
 // RouterConfig holds optional components for the main router.
 type RouterConfig struct {
-	Identity      *service.IdentityManager
-	Pool          *pgxpool.Pool
-	Logger        *slog.Logger
+	Identity *service.IdentityManager
+	Pool     *pgxpool.Pool
+	Logger   *slog.Logger
 
 	// OIDCProvider is the mounted OIDC provider handler (nil to disable).
 	OIDCProvider http.Handler
@@ -35,7 +35,6 @@ func NewRouter(cfg RouterConfig) http.Handler {
 
 	// ─── Global middleware ────────────────────────────
 	r.Use(chimiddleware.RequestID)
-	r.Use(chimiddleware.RealIP)
 	r.Use(slogMiddleware(logger))
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
@@ -106,20 +105,20 @@ func NewRouter(cfg RouterConfig) http.Handler {
 				baseURL = "http://" + r.Host
 			}
 			writeJSON(w, http.StatusOK, map[string]any{
-				"issuer":                 baseURL,
-				"authorization_endpoint": baseURL + "/oidc/authorize",
-				"token_endpoint":         baseURL + "/oidc/token",
-				"userinfo_endpoint":      baseURL + "/oidc/userinfo",
-				"jwks_uri":               baseURL + "/oidc/keys",
-				"revocation_endpoint":    baseURL + "/oidc/revoke",
-				"introspection_endpoint": baseURL + "/oidc/introspect",
-				"response_types_supported": []string{"code"},
-				"subject_types_supported":  []string{"public"},
+				"issuer":                                baseURL,
+				"authorization_endpoint":                baseURL + "/oidc/authorize",
+				"token_endpoint":                        baseURL + "/oidc/token",
+				"userinfo_endpoint":                     baseURL + "/oidc/userinfo",
+				"jwks_uri":                              baseURL + "/oidc/keys",
+				"revocation_endpoint":                   baseURL + "/oidc/revoke",
+				"introspection_endpoint":                baseURL + "/oidc/introspect",
+				"response_types_supported":              []string{"code"},
+				"subject_types_supported":               []string{"public"},
 				"id_token_signing_alg_values_supported": []string{"RS256", "ES256", "EdDSA"},
-				"scopes_supported":         []string{"openid", "profile", "email"},
+				"scopes_supported":                      []string{"openid", "profile", "email"},
 				"token_endpoint_auth_methods_supported": []string{"client_secret_basic", "client_secret_post", "none"},
-				"grant_types_supported":    []string{"authorization_code", "refresh_token"},
-				"code_challenge_methods_supported": []string{"S256"},
+				"grant_types_supported":                 []string{"authorization_code", "refresh_token"},
+				"code_challenge_methods_supported":      []string{"S256"},
 			})
 		})
 	}
