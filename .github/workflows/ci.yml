@@ -7,25 +7,33 @@ on:
     branches: [master]
 
 env:
-  GO_VERSION: "1.22"
+  GO_VERSION: "1.26.1"
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
+          version: v2.11
 
   test:
     name: Test
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -40,13 +48,21 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
       - name: Run unit tests
         run: go test -v -race -count=1 -short -coverprofile=coverage.out ./...
+
       - name: Run integration tests
         env:
           SAASKIT_DATABASE_HOST: localhost
@@ -62,12 +78,22 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
       - name: Build binary
-        run: go build -o bin/saaskit ./cmd/saaskit
+        run: |
+          mkdir -p bin
+          go build -trimpath -o bin/saaskit ./cmd/saaskit
+
       - name: Build Docker image
         run: docker build -f docker/Dockerfile -t saaskit:test .
