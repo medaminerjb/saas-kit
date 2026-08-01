@@ -16,7 +16,6 @@ FROM gcr.io/distroless/static-debian12
 
 COPY --from=builder /build/bin/saaskit /saaskit
 COPY --from=builder /build/migrations /migrations
-COPY --from=builder /build/templates /templates
 
 EXPOSE 8080
 
