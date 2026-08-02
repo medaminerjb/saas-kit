@@ -402,11 +402,11 @@ session.revoked
 
 # 11. Documentation
 
-* [ ] Installation guide
-* [ ] Configuration guide
-* [ ] Authentication guide
-* [ ] OIDC integration guide
-* [ ] API reference
+* [x] Installation guide
+* [x] Configuration guide
+* [x] Authentication guide
+* [x] OIDC integration guide
+* [x] API reference
 * [x] Architecture documentation
 
 ---

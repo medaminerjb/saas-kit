@@ -36,7 +36,7 @@ func (r *SessionRepo) Create(ctx context.Context, session *domain.Session) error
 
 // GetByRefreshTokenHash retrieves an active session by its refresh token hash.
 func (r *SessionRepo) GetByRefreshTokenHash(ctx context.Context, hash string) (*domain.Session, error) {
-	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
+	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address::text, expires_at, created_at, revoked_at
 		FROM sessions WHERE refresh_token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW()`
 
 	return r.scanSession(r.pool.QueryRow(ctx, query, hash))
@@ -44,7 +44,7 @@ func (r *SessionRepo) GetByRefreshTokenHash(ctx context.Context, hash string) (*
 
 // GetByID retrieves a session by ID.
 func (r *SessionRepo) GetByID(ctx context.Context, id uuid.UUID) (*domain.Session, error) {
-	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
+	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address::text, expires_at, created_at, revoked_at
 		FROM sessions WHERE id = $1`
 
 	return r.scanSession(r.pool.QueryRow(ctx, query, id))
@@ -66,7 +66,7 @@ func (r *SessionRepo) RevokeAllForUser(ctx context.Context, userID uuid.UUID) er
 
 // ListForUser returns all active sessions for a user.
 func (r *SessionRepo) ListForUser(ctx context.Context, userID uuid.UUID) ([]*domain.Session, error) {
-	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
+	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address::text, expires_at, created_at, revoked_at
 		FROM sessions WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW()
 		ORDER BY created_at DESC`
 
