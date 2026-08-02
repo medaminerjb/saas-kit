@@ -12,8 +12,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/saaskit/saaskit/internal/platform/events"
-	"github.com/saaskit/saaskit/internal/sqlcgen"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
+	"github.com/medaminerjb/saas-kit/internal/sqlcgen"
 )
 
 // EventType defines the type of auditable event.

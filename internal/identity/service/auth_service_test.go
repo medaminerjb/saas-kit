@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/saaskit/saaskit/internal/identity/crypto"
-	"github.com/saaskit/saaskit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/crypto"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
 
 // mockSessionRepository implements repository.SessionRepository for testing.

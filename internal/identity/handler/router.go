@@ -9,10 +9,10 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/saaskit/saaskit/internal/platform/database"
-	"github.com/saaskit/saaskit/internal/platform/events"
+	"github.com/medaminerjb/saas-kit/internal/platform/database"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
 
-	"github.com/saaskit/saaskit/internal/identity/service"
+	"github.com/medaminerjb/saas-kit/internal/identity/service"
 )
 
 // RouterConfig holds optional components for the main router.

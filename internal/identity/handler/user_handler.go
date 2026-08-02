@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/saaskit/saaskit/internal/identity/service"
+	"github.com/medaminerjb/saas-kit/internal/identity/service"
 )
 
 // UserHandler handles user profile HTTP endpoints.

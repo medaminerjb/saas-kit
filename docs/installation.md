@@ -21,7 +21,7 @@ To run SaaSKit locally for development:
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/saaskit/saaskit.git
+git clone https://github.com/medaminerjb/saas-kit.git
 cd saaskit
 ```
 

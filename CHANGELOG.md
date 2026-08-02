@@ -45,5 +45,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aligned `sqlc` queries for `identity_providers` with database schema.
 - Improved `audit_logs` sqlc query parameter naming to use named `ip_address` parameter.
 
-[unreleased]: https://github.com/saaskit/saaskit/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/saaskit/saaskit/releases/tag/v0.1.0
+[unreleased]: https://github.com/medaminerjb/saas-kit/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/medaminerjb/saas-kit/releases/tag/v0.1.0

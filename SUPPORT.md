@@ -12,7 +12,7 @@ Before reaching out, check our documentation to see if your question is already 
 ## 2. Community Channels
 
 For general help, discussions, and community interactions, use the following:
-* **GitHub Discussions:** Use [SaaSKit Discussions](https://github.com/saaskit/saaskit/discussions) for Q&A, architectural debates, and sharing how you use the project.
+* **GitHub Discussions:** Use [SaaSKit Discussions](https://github.com/medaminerjb/saas-kit/discussions) for Q&A, architectural debates, and sharing how you use the project.
 * **GitHub Issues:** Open an issue if you've found a bug or want to request a feature. Make sure to use the templates!
 * **Community Slack/Discord:** Join our chat servers to connect with other developers using SaaSKit. (Links will be updated on the main page).
 

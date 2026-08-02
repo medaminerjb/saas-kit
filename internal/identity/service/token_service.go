@@ -12,7 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
-	"github.com/saaskit/saaskit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
 
 // JWTClaims are the claims included in SaaSKit access tokens.

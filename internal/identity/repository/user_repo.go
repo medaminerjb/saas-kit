@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/saaskit/saaskit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
 
 // UserRepo implements repository.UserRepository using pgx.

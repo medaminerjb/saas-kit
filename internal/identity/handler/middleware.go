@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/saaskit/saaskit/internal/identity/service"
+	"github.com/medaminerjb/saas-kit/internal/identity/service"
 )
 
 // AuthMiddleware validates JWT access tokens and injects claims into the request context.

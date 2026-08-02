@@ -12,7 +12,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/saaskit/saaskit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
 
 // IdentityManager is the top-level orchestrator for identity operations.
