@@ -387,16 +387,16 @@ session.revoked
 
 ## Integration Tests
 
-* [ ] PostgreSQL integration tests
+* [x] PostgreSQL integration tests
 * [ ] OIDC flow tests
 * [ ] OAuth login tests
 
 ## E2E Tests
 
-* [ ] Registration flow
-* [ ] Login flow
-* [ ] Token refresh flow
-* [ ] Logout flow
+* [x] Registration flow
+* [x] Login flow
+* [x] Token refresh flow
+* [x] Logout flow
 
 ---
 
