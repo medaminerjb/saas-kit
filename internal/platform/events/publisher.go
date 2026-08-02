@@ -82,3 +82,24 @@ type NoopPublisher struct{}
 func (n *NoopPublisher) Publish(_ context.Context, _ Event) error {
 	return nil
 }
+
+type contextKey string
+
+const (
+	ipAddressKey contextKey = "ip_address"
+	userAgentKey contextKey = "user_agent"
+)
+
+// WithClientInfo injects client IP and User Agent into context.
+func WithClientInfo(ctx context.Context, ip, userAgent string) context.Context {
+	ctx = context.WithValue(ctx, ipAddressKey, ip)
+	return context.WithValue(ctx, userAgentKey, userAgent)
+}
+
+// GetClientInfo extracts client IP and User Agent from context.
+func GetClientInfo(ctx context.Context) (ip, userAgent string) {
+	ip, _ = ctx.Value(ipAddressKey).(string)
+	userAgent, _ = ctx.Value(userAgentKey).(string)
+	return ip, userAgent
+}
+

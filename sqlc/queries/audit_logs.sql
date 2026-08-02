@@ -1,6 +1,14 @@
 -- name: CreateAuditLog :exec
 INSERT INTO audit_logs (tenant_id, actor_id, target_id, event, ip_address, user_agent, metadata)
-VALUES ($1, $2, $3, $4, $5::inet, $6, $7);
+VALUES (
+  sqlc.narg('tenant_id'),
+  sqlc.narg('actor_id'),
+  sqlc.narg('target_id'),
+  sqlc.arg('event'),
+  sqlc.narg('ip_address')::inet,
+  sqlc.narg('user_agent'),
+  sqlc.narg('metadata')
+);
 
 -- name: ListAuditLogs :many
 SELECT * FROM audit_logs

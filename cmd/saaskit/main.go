@@ -105,7 +105,7 @@ func run() error {
 
 	// ─── Event Publisher ──────────────────────────────
 	logPublisher := events.NewLogPublisher(logger)
-	auditPublisher := audit.NewAuditPublisher(logger)
+	auditPublisher := audit.NewAuditPublisher(logger, pool)
 	publisher := events.NewMultiPublisher(logPublisher, auditPublisher)
 
 	// ─── Repositories ─────────────────────────────────
