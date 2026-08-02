@@ -1,6 +1,6 @@
 module github.com/saaskit/saaskit
 
-go 1.26.1
+go 1.26.5
 
 require (
 	github.com/go-chi/chi/v5 v5.3.1
