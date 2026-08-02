@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +26,9 @@ type AuthService struct {
 	publisher     events.Publisher
 	refreshTTL    time.Duration
 	logger        *slog.Logger
+
+	failedMu      sync.Mutex
+	failedAttempts map[string]int
 }
 
 // AuthServiceConfig holds AuthService dependencies.
@@ -42,15 +46,16 @@ type AuthServiceConfig struct {
 // NewAuthService creates a new authentication service.
 func NewAuthService(cfg AuthServiceConfig, logger *slog.Logger) *AuthService {
 	return &AuthService{
-		users:        cfg.Users,
-		sessions:     cfg.Sessions,
-		tokens:       cfg.Tokens,
-		hasher:       cfg.Hasher,
-		tokenHasher:  cfg.TokenHasher,
-		tokenService: cfg.TokenService,
-		publisher:    cfg.Publisher,
-		refreshTTL:   cfg.RefreshTTL,
-		logger:       logger,
+		users:          cfg.Users,
+		sessions:       cfg.Sessions,
+		tokens:         cfg.Tokens,
+		hasher:         cfg.Hasher,
+		tokenHasher:    cfg.TokenHasher,
+		tokenService:   cfg.TokenService,
+		publisher:      cfg.Publisher,
+		refreshTTL:     cfg.RefreshTTL,
+		logger:         logger,
+		failedAttempts: make(map[string]int),
 	}
 }
 
@@ -159,8 +164,12 @@ func (s *AuthService) Login(ctx context.Context, input LoginInput) (*domain.User
 
 	match, err := s.hasher.Verify(input.Password, *user.PasswordHash)
 	if err != nil || !match {
+		s.trackFailedLogin(ctx, user.Email, user)
 		return nil, nil, domain.ErrInvalidCredentials
 	}
+
+	// Reset attempts on success
+	s.resetFailedLogin(user.Email)
 
 	// Update last login
 	_ = s.users.UpdateLastLogin(ctx, user.ID)
@@ -390,5 +399,42 @@ func (s *AuthService) createSession(ctx context.Context, user *domain.User, user
 // (e.g., after social login where credentials were verified by the external provider).
 func (s *AuthService) CreateSessionForUser(ctx context.Context, user *domain.User) (*AuthTokens, error) {
 	return s.createSession(ctx, user, "social-login", "")
+}
+
+func (s *AuthService) trackFailedLogin(ctx context.Context, email string, user *domain.User) {
+	s.failedMu.Lock()
+	defer s.failedMu.Unlock()
+
+	s.failedAttempts[email]++
+	attempts := s.failedAttempts[email]
+
+	s.logger.WarnContext(ctx, "failed login attempt",
+		slog.String("email", email),
+		slog.Int("attempts", attempts),
+	)
+
+	if attempts >= 5 {
+		user.Status = domain.UserStatusLocked
+		if err := s.users.Update(ctx, user); err != nil {
+			s.logger.ErrorContext(ctx, "failed to lock user account", slog.Any("error", err))
+		} else {
+			s.logger.WarnContext(ctx, "user account locked due to excessive failed login attempts",
+				slog.String("email", email),
+				slog.String("user_id", user.ID.String()),
+			)
+			_ = s.publisher.Publish(ctx, events.Event{
+				Type:     "user.locked",
+				ActorID:  &user.ID,
+				TargetID: &user.ID,
+			})
+		}
+		delete(s.failedAttempts, email)
+	}
+}
+
+func (s *AuthService) resetFailedLogin(email string) {
+	s.failedMu.Lock()
+	defer s.failedMu.Unlock()
+	delete(s.failedAttempts, email)
 }
 
