@@ -9,10 +9,10 @@ import (
 
 	"github.com/google/uuid"
 
-	idcrypto "github.com/saaskit/saaskit/internal/identity/crypto"
-	"github.com/saaskit/saaskit/internal/identity/domain"
-	"github.com/saaskit/saaskit/internal/identity/repository"
-	"github.com/saaskit/saaskit/internal/platform/events"
+	idcrypto "github.com/medaminerjb/saas-kit/internal/identity/crypto"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/repository"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
 )
 
 // AuthService handles authentication flows: registration, login, token refresh, logout.

@@ -17,10 +17,10 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	idcrypto "github.com/saaskit/saaskit/internal/identity/crypto"
-	"github.com/saaskit/saaskit/internal/identity/repository"
-	"github.com/saaskit/saaskit/internal/identity/service"
-	"github.com/saaskit/saaskit/internal/platform/events"
+	idcrypto "github.com/medaminerjb/saas-kit/internal/identity/crypto"
+	"github.com/medaminerjb/saas-kit/internal/identity/repository"
+	"github.com/medaminerjb/saas-kit/internal/identity/service"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
 )
 
 func runMigrations(ctx context.Context, t *testing.T, pool *pgxpool.Pool) {

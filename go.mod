@@ -1,4 +1,4 @@
-module github.com/saaskit/saaskit
+module github.com/medaminerjb/saas-kit
 
 go 1.26.5
 

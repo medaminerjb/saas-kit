@@ -13,18 +13,18 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/saaskit/saaskit/internal/audit"
-	"github.com/saaskit/saaskit/internal/config"
-	idcrypto "github.com/saaskit/saaskit/internal/identity/crypto"
-	"github.com/saaskit/saaskit/internal/identity/handler"
-	"github.com/saaskit/saaskit/internal/identity/repository"
-	"github.com/saaskit/saaskit/internal/identity/service"
-	oidcprovider "github.com/saaskit/saaskit/internal/oidc/provider"
-	"github.com/saaskit/saaskit/internal/oidc/relyingparty"
-	platformcrypto "github.com/saaskit/saaskit/internal/platform/crypto"
-	"github.com/saaskit/saaskit/internal/platform/database"
-	"github.com/saaskit/saaskit/internal/platform/events"
-	"github.com/saaskit/saaskit/internal/platform/jobs"
+	"github.com/medaminerjb/saas-kit/internal/audit"
+	"github.com/medaminerjb/saas-kit/internal/config"
+	idcrypto "github.com/medaminerjb/saas-kit/internal/identity/crypto"
+	"github.com/medaminerjb/saas-kit/internal/identity/handler"
+	"github.com/medaminerjb/saas-kit/internal/identity/repository"
+	"github.com/medaminerjb/saas-kit/internal/identity/service"
+	oidcprovider "github.com/medaminerjb/saas-kit/internal/oidc/provider"
+	"github.com/medaminerjb/saas-kit/internal/oidc/relyingparty"
+	platformcrypto "github.com/medaminerjb/saas-kit/internal/platform/crypto"
+	"github.com/medaminerjb/saas-kit/internal/platform/database"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
+	"github.com/medaminerjb/saas-kit/internal/platform/jobs"
 )
 
 func main() {

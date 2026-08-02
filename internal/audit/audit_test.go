@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/saaskit/saaskit/internal/platform/events"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
 )
 
 func TestNewAuditPublisher(t *testing.T) {

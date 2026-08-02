@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/saaskit/saaskit/internal/identity/crypto"
-	"github.com/saaskit/saaskit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/crypto"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
 
 func TestTokenService_GenerateAndValidate_RS256(t *testing.T) {

@@ -14,10 +14,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/saaskit/saaskit/internal/identity/domain"
-	"github.com/saaskit/saaskit/internal/identity/repository"
-	"github.com/saaskit/saaskit/internal/identity/service"
-	"github.com/saaskit/saaskit/internal/platform/events"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/repository"
+	"github.com/medaminerjb/saas-kit/internal/identity/service"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"

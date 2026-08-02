@@ -24,7 +24,7 @@ SaaSKit provides the foundational infrastructure every multi-tenant SaaS applica
 
 ```bash
 # Clone the repository
-git clone https://github.com/saaskit/saaskit.git
+git clone https://github.com/medaminerjb/saas-kit.git
 cd saaskit
 
 # Copy the example env file

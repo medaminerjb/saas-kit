@@ -14,9 +14,9 @@ import (
 	jose "github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
 
-	idcrypto "github.com/saaskit/saaskit/internal/identity/crypto"
-	"github.com/saaskit/saaskit/internal/identity/repository"
-	platformcrypto "github.com/saaskit/saaskit/internal/platform/crypto"
+	idcrypto "github.com/medaminerjb/saas-kit/internal/identity/crypto"
+	"github.com/medaminerjb/saas-kit/internal/identity/repository"
+	platformcrypto "github.com/medaminerjb/saas-kit/internal/platform/crypto"
 
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"github.com/zitadel/oidc/v3/pkg/op"

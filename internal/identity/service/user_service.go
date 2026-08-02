@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/saaskit/saaskit/internal/identity/domain"
-	"github.com/saaskit/saaskit/internal/identity/repository"
-	"github.com/saaskit/saaskit/internal/platform/events"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/repository"
+	"github.com/medaminerjb/saas-kit/internal/platform/events"
 )
 
 // UserService handles user profile management operations.

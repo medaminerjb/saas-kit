@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/saaskit/saaskit/internal/identity/domain"
+	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
 
 // UserRepository defines persistence operations for users.
