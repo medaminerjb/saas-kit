@@ -369,10 +369,10 @@ session.revoked
 * [x] Argon2id password hashing
 * [x] Secure token generation
 * [x] CSRF protection
-* [ ] Rate limiting
+* [x] Rate limiting
 * [x] Input validation
-* [ ] Security headers
-* [ ] Dependency scanning
+* [x] Security headers
+* [x] Dependency scanning
 
 ---
 
@@ -380,7 +380,7 @@ session.revoked
 
 ## Unit Tests
 
-* [ ] User service tests
+* [x] User service tests
 * [ ] Authentication tests
 * [x] Token tests
 * [ ] Session tests
@@ -418,7 +418,7 @@ session.revoked
 * [x] CI pipeline passing
 * [ ] Docker image published
 * [x] Database migrations tested
-* [ ] Security scan completed
+* [x] Security scan completed
 
 ## Product
 
