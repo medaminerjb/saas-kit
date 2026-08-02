@@ -36,7 +36,6 @@ func NewRouter(cfg RouterConfig) http.Handler {
 
 	// ─── Global middleware ────────────────────────────
 	r.Use(chimiddleware.RequestID)
-	r.Use(chimiddleware.RealIP)
 	r.Use(clientInfoMiddleware)
 	r.Use(SecurityHeadersMiddleware)
 	

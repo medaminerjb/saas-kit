@@ -19,7 +19,7 @@ func TestSecurityHeadersMiddleware(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	res := rec.Result()
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.Header.Get("X-Content-Type-Options") != "nosniff" {
 		t.Errorf("expected X-Content-Type-Options: nosniff, got %s", res.Header.Get("X-Content-Type-Options"))
@@ -44,7 +44,7 @@ func TestSecurityHeadersMiddleware(t *testing.T) {
 	handler.ServeHTTP(recSecure, reqSecure)
 
 	resSecure := recSecure.Result()
-	defer resSecure.Body.Close()
+	defer func() { _ = resSecure.Body.Close() }()
 
 	if resSecure.Header.Get("Strict-Transport-Security") == "" {
 		t.Error("expected HSTS header on HTTPS request")
