@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/saaskit/saaskit/internal/platform/database"
+	"github.com/saaskit/saaskit/internal/platform/events"
 
 	"github.com/saaskit/saaskit/internal/identity/service"
 )
@@ -35,6 +36,8 @@ func NewRouter(cfg RouterConfig) http.Handler {
 
 	// ─── Global middleware ────────────────────────────
 	r.Use(chimiddleware.RequestID)
+	r.Use(chimiddleware.RealIP)
+	r.Use(clientInfoMiddleware)
 	r.Use(slogMiddleware(logger))
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
@@ -160,3 +163,14 @@ func corsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// clientInfoMiddleware injects the client IP and User Agent into request context.
+func clientInfoMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := extractIP(r)
+		userAgent := r.UserAgent()
+		ctx := events.WithClientInfo(r.Context(), ip, userAgent)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+

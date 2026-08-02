@@ -3,12 +3,17 @@ package audit
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/saaskit/saaskit/internal/platform/events"
+	"github.com/saaskit/saaskit/internal/sqlcgen"
 )
 
 // EventType defines the type of auditable event.
@@ -64,12 +69,15 @@ func NewService(logger *slog.Logger) *Service {
 // It wraps the repository layer and can be added to a MultiPublisher.
 type AuditPublisher struct {
 	logger *slog.Logger
-	// store AuditRepository — will be wired when Postgres repo is ready
+	pool   *pgxpool.Pool
 }
 
 // NewAuditPublisher creates a publisher that records events as audit logs.
-func NewAuditPublisher(logger *slog.Logger) *AuditPublisher {
-	return &AuditPublisher{logger: logger}
+func NewAuditPublisher(logger *slog.Logger, pool *pgxpool.Pool) *AuditPublisher {
+	return &AuditPublisher{
+		logger: logger,
+		pool:   pool,
+	}
 }
 
 // Publish records an event as an audit log entry.
@@ -78,6 +86,67 @@ func (p *AuditPublisher) Publish(ctx context.Context, event events.Event) error 
 		slog.String("event", event.Type),
 		slog.Time("timestamp", event.Timestamp),
 	)
-	// TODO: persist to audit_logs table via repository
+
+	if p.pool == nil {
+		return nil
+	}
+
+	// Map events.Event to sqlcgen.CreateAuditLogParams
+	var tenantID pgtype.UUID
+	if event.TenantID != nil {
+		tenantID = pgtype.UUID{Bytes: *event.TenantID, Valid: true}
+	}
+
+	var actorID pgtype.UUID
+	if event.ActorID != nil {
+		actorID = pgtype.UUID{Bytes: *event.ActorID, Valid: true}
+	}
+
+	var targetID pgtype.UUID
+	if event.TargetID != nil {
+		targetID = pgtype.UUID{Bytes: *event.TargetID, Valid: true}
+	}
+
+	// Extract Client IP and User Agent from context
+	ipStr, userAgentStr := events.GetClientInfo(ctx)
+
+	var ipAddress *netip.Addr
+	if ipStr != "" {
+		if ip, err := netip.ParseAddr(ipStr); err == nil {
+			ipAddress = &ip
+		}
+	}
+
+	var userAgent *string
+	if userAgentStr != "" {
+		userAgent = &userAgentStr
+	}
+
+	// Serialize metadata/payload to JSON bytes
+	var metadata []byte
+	if event.Payload != nil {
+		if mBytes, err := json.Marshal(event.Payload); err == nil {
+			metadata = mBytes
+		}
+	}
+
+	queries := sqlcgen.New(p.pool)
+	err := queries.CreateAuditLog(ctx, sqlcgen.CreateAuditLogParams{
+		TenantID:  tenantID,
+		ActorID:   actorID,
+		TargetID:  targetID,
+		Event:     sqlcgen.AuditEventType(event.Type),
+		IpAddress: ipAddress,
+		UserAgent: userAgent,
+		Metadata:  metadata,
+	})
+	if err != nil {
+		p.logger.ErrorContext(ctx, "failed to persist audit log",
+			slog.String("event", event.Type),
+			slog.Any("error", err),
+		)
+		return err
+	}
+
 	return nil
 }

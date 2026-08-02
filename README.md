@@ -180,6 +180,26 @@ See the [full roadmap](docs/roadmap.md) for detailed plans through v3.0.
 4. ⬜ **Authorization** — RBAC, permissions middleware
 5. ⬜ **Enterprise** — SAML, SCIM, MFA, API keys
 
+## Contributing
+
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
+- Development setup and workflow
+- Commit message conventions (Conventional Commits)
+- Pull request process
+- Developer Certificate of Origin (DCO) requirement
+
+## Community & Governance
+
+SaaSKit is a community-driven project with transparent governance:
+
+| Document | Purpose |
+|----------|---------|
+| [Code of Conduct](CODE_OF_CONDUCT.md) | Community standards and enforcement |
+| [Governance](GOVERNANCE.md) | Roles, decision making, and RFC process |
+| [Security Policy](SECURITY.md) | Vulnerability reporting and disclosure |
+| [Support](SUPPORT.md) | How to get help |
+| [Changelog](CHANGELOG.md) | Release history |
+
 ## License
 
 [Apache License 2.0](LICENSE)
