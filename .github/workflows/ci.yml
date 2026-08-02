@@ -30,6 +30,23 @@ jobs:
         with:
           version: v2.11
 
+  sqlc:
+    name: SQLC Diff Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: Verify generated code is in sync
+        run: make sqlc-check
+
   test:
     name: Test
     runs-on: ubuntu-latest
