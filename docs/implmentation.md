@@ -416,7 +416,7 @@ session.revoked
 ## Engineering
 
 * [x] CI pipeline passing
-* [ ] Docker image published
+* [x] Docker image published
 * [x] Database migrations tested
 * [x] Security scan completed
 
@@ -429,10 +429,10 @@ session.revoked
 
 ## Release
 
-* [ ] Tag v0.1.0
-* [ ] Publish release notes
-* [ ] Publish Docker images
-* [ ] Announce developer preview
+* [x] Tag v0.1.0
+* [x] Publish release notes
+* [x] Publish Docker images
+* [x] Announce developer preview
 
 ---
 
