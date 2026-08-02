@@ -14,6 +14,7 @@ import (
 // mockUserRepository implements repository.UserRepository for testing.
 type mockUserRepository struct {
 	getByIDFunc    func(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	getByEmailFunc func(ctx context.Context, email string, tenantID *uuid.UUID) (*domain.User, error)
 	updateFunc     func(ctx context.Context, user *domain.User) error
 	softDeleteFunc func(ctx context.Context, id uuid.UUID) error
 	listFunc       func(ctx context.Context, tenantID *uuid.UUID, limit, offset int32) ([]*domain.User, error)
@@ -32,6 +33,9 @@ func (m *mockUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain
 }
 
 func (m *mockUserRepository) GetByEmail(ctx context.Context, email string, tenantID *uuid.UUID) (*domain.User, error) {
+	if m.getByEmailFunc != nil {
+		return m.getByEmailFunc(ctx, email, tenantID)
+	}
 	return nil, nil
 }
 

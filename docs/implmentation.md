@@ -188,7 +188,7 @@ POST /api/v1/auth/register
 * [x] Login endpoint
 * [x] Password verification
 * [x] Argon2id implementation
-* [ ] Failed login tracking
+* [x] Failed login tracking
 * [x] Authentication events
 
 API:
@@ -381,9 +381,9 @@ session.revoked
 ## Unit Tests
 
 * [x] User service tests
-* [ ] Authentication tests
+* [x] Authentication tests
 * [x] Token tests
-* [ ] Session tests
+* [x] Session tests
 
 ## Integration Tests
 
