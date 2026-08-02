@@ -216,7 +216,7 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to send registration request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusCreated {
 			body, _ := io.ReadAll(resp.Body)
@@ -245,7 +245,7 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to send login request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
@@ -281,7 +281,7 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to send token refresh request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
@@ -317,7 +317,7 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to send logout request: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
@@ -342,7 +342,7 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to send refresh request after logout: %v", err)
 		}
-		defer respRef.Body.Close()
+		defer func() { _ = respRef.Body.Close() }()
 
 		if respRef.StatusCode != http.StatusUnauthorized {
 			t.Errorf("expected refresh status 401 Unauthorized for revoked session, got %d", respRef.StatusCode)
