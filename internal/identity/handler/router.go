@@ -38,6 +38,12 @@ func NewRouter(cfg RouterConfig) http.Handler {
 	r.Use(chimiddleware.RequestID)
 	r.Use(chimiddleware.RealIP)
 	r.Use(clientInfoMiddleware)
+	r.Use(SecurityHeadersMiddleware)
+	
+	// IP-based rate limiting: 20 req/sec per IP, burst of 40
+	limiter := NewRateLimiter(20.0, 40.0)
+	r.Use(limiter.Limit)
+
 	r.Use(slogMiddleware(logger))
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
