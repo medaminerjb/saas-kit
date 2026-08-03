@@ -25,6 +25,8 @@ import (
 	"github.com/medaminerjb/saas-kit/internal/platform/database"
 	"github.com/medaminerjb/saas-kit/internal/platform/events"
 	"github.com/medaminerjb/saas-kit/internal/platform/jobs"
+	tenantrepo "github.com/medaminerjb/saas-kit/internal/tenant/repository"
+	tenantservice "github.com/medaminerjb/saas-kit/internal/tenant/service"
 )
 
 func main() {
@@ -138,6 +140,10 @@ func run() error {
 
 	identityManager := service.NewIdentityManager(authService, userService, tokenService, logger)
 
+	// ─── Tenant Service ────────────────────────────────
+	tenantRepo := tenantrepo.NewTenantRepository(pool)
+	tenantService := tenantservice.NewTenantService(tenantRepo, publisher, logger)
+
 	// ─── OIDC Provider ────────────────────────────────
 	oidcStorage := oidcprovider.NewStorage(oidcprovider.StorageConfig{
 		Pool:     pool,
@@ -170,11 +176,12 @@ func run() error {
 
 	// ─── HTTP Server ──────────────────────────────────
 	router := handler.NewRouter(handler.RouterConfig{
-		Identity:     identityManager,
-		Pool:         pool,
-		Logger:       logger,
-		OIDCProvider: oidcHandler,
-		SocialLogin:  socialRouter,
+		Identity:      identityManager,
+		Pool:          pool,
+		Logger:        logger,
+		OIDCProvider:  oidcHandler,
+		SocialLogin:   socialRouter,
+		TenantService: tenantService,
 	})
 
 	srv := &http.Server{
