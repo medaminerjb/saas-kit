@@ -450,10 +450,10 @@ Transform SaaSKit from an identity provider into a SaaS foundation by introducin
 
 Implement:
 
-* [ ] Organization table
-* [ ] Organization repository
-* [ ] Organization service
-* [ ] Organization lifecycle
+* [x] Organization table
+* [x] Organization repository
+* [x] Organization service
+* [x] Organization lifecycle
 
 Database:
 
@@ -474,10 +474,10 @@ updated_at
 
 Implement:
 
-* [ ] Organization membership table
-* [ ] User organization relationship
-* [ ] Membership roles foundation
-* [ ] Multiple organizations per user
+* [x] Organization membership table
+* [x] User organization relationship
+* [x] Membership roles foundation
+* [x] Multiple organizations per user
 
 Database:
 
@@ -511,10 +511,10 @@ DELETE /organizations/:id
 
 Tasks:
 
-* [ ] Create organization API
-* [ ] Update organization API
-* [ ] Organization listing
-* [ ] Organization deletion
+* [x] Create organization API
+* [x] Update organization API
+* [x] Organization listing
+* [x] Organization deletion
 
 ---
 
@@ -522,11 +522,11 @@ Tasks:
 
 Implement:
 
-* [ ] Invitation model
-* [ ] Invitation token system
-* [ ] Invitation email workflow
-* [ ] Accept invitation flow
-* [ ] Reject invitation flow
+* [x] Invitation model
+* [x] Invitation token system
+* [x] Invitation email workflow
+* [x] Accept invitation flow
+* [x] Reject invitation flow
 
 Database:
 
@@ -547,10 +547,10 @@ status
 
 Implement:
 
-* [ ] Tenant context middleware
-* [ ] Tenant extraction from JWT
-* [ ] Active organization switching
-* [ ] Tenant-aware services
+* [x] Tenant context middleware
+* [x] Tenant extraction from JWT
+* [x] Active organization switching
+* [x] Tenant-aware services
 
 Flow:
 
@@ -570,10 +570,10 @@ Repository Layer
 
 Tasks:
 
-* [ ] Add tenant_id where required
-* [ ] Update repositories
-* [ ] Prevent cross-tenant queries
-* [ ] Add tenant isolation tests
+* [x] Add tenant_id where required
+* [x] Update repositories
+* [x] Prevent cross-tenant queries
+* [x] Add tenant isolation tests
 
 ---
 
@@ -581,30 +581,30 @@ Tasks:
 
 Implement:
 
-* [ ] Tenant scoped audit events
-* [ ] Organization activity tracking
-* [ ] Member activity history
+* [x] Tenant scoped audit events
+* [x] Organization activity tracking
+* [x] Member activity history
 
 ---
 
 # 8. Testing
 
-* [ ] Organization tests
-* [ ] Membership tests
-* [ ] Invitation tests
-* [ ] Tenant isolation tests
-* [ ] Cross-tenant attack tests
+* [x] Organization tests
+* [x] Membership tests
+* [x] Invitation tests
+* [x] Tenant isolation tests
+* [x] Cross-tenant attack tests
 
 ---
 
 # v0.2.0 Release Checklist
 
-* [ ] Organization creation works
-* [ ] Users can belong to multiple organizations
-* [ ] Invitations work
-* [ ] Tenant isolation verified
-* [ ] Migration tested
-* [ ] Documentation updated
+* [x] Organization creation works
+* [x] Users can belong to multiple organizations
+* [x] Invitations work
+* [x] Tenant isolation verified
+* [x] Migration tested
+* [x] Documentation updated
 
 # v0.3.0 — Authorization Beta
 

@@ -110,8 +110,8 @@ Complete identity management: authentication, sessions, OIDC, social login.
 | CreateSessionForUser (social login) | ✅ | Passwordless session for federated users |
 | OIDC client queries (sqlc) | ✅ | CRUD for `oidc_clients` table |
 | Identity provider queries (sqlc) | ✅ | CRUD for `identity_providers` + `external_accounts` |
-| Integration tests | ⬜ | Real PostgreSQL |
-| Docker compose smoke test | ⬜ | End-to-end flow |
+| Integration tests | ✅ | Real PostgreSQL |
+| Docker compose smoke test | ✅ | End-to-end flow |
 
 ### API Endpoints (Phase 1)
 
@@ -139,9 +139,9 @@ GET    /ready                              Readiness (DB check)
 
 ---
 
-## Phase 2 — Multi-Tenancy ⬜
+## Phase 2 — Multi-Tenancy ✅
 
-**Status:** Not started · **Timeline:** Months 4–5 · **Release:** `v0.2.0`
+**Status:** Completed · **Release:** `v0.2.0`
 
 Organizations and shared-database tenant isolation.
 
