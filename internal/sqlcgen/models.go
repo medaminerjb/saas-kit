@@ -382,6 +382,40 @@ type Session struct {
 	RevokedAt        pgtype.Timestamptz `db:"revoked_at" json:"revoked_at"`
 }
 
+type Tenant struct {
+	ID        uuid.UUID `db:"id" json:"id"`
+	Name      string    `db:"name" json:"name"`
+	Slug      string    `db:"slug" json:"slug"`
+	Status    string    `db:"status" json:"status"`
+	Plan      string    `db:"plan" json:"plan"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
+type TenantFeatureFlag struct {
+	TenantID      uuid.UUID `db:"tenant_id" json:"tenant_id"`
+	FeatureFlagID uuid.UUID `db:"feature_flag_id" json:"feature_flag_id"`
+	Enabled       bool      `db:"enabled" json:"enabled"`
+}
+
+type TenantInvitation struct {
+	ID         uuid.UUID          `db:"id" json:"id"`
+	TenantID   uuid.UUID          `db:"tenant_id" json:"tenant_id"`
+	Email      string             `db:"email" json:"email"`
+	Role       string             `db:"role" json:"role"`
+	TokenHash  string             `db:"token_hash" json:"token_hash"`
+	ExpiresAt  time.Time          `db:"expires_at" json:"expires_at"`
+	AcceptedAt pgtype.Timestamptz `db:"accepted_at" json:"accepted_at"`
+	CreatedAt  time.Time          `db:"created_at" json:"created_at"`
+}
+
+type TenantMember struct {
+	TenantID uuid.UUID `db:"tenant_id" json:"tenant_id"`
+	UserID   uuid.UUID `db:"user_id" json:"user_id"`
+	Role     string    `db:"role" json:"role"`
+	JoinedAt time.Time `db:"joined_at" json:"joined_at"`
+}
+
 type TrustedDevice struct {
 	ID         uuid.UUID          `db:"id" json:"id"`
 	UserID     uuid.UUID          `db:"user_id" json:"user_id"`
