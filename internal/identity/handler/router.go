@@ -13,6 +13,7 @@ import (
 	"github.com/medaminerjb/saas-kit/internal/platform/events"
 
 	"github.com/medaminerjb/saas-kit/internal/identity/service"
+	tenantservice "github.com/medaminerjb/saas-kit/internal/tenant/service"
 )
 
 // RouterConfig holds optional components for the main router.
@@ -25,6 +26,8 @@ type RouterConfig struct {
 	OIDCProvider http.Handler
 	// SocialLogin is the mounted social login handler (nil to disable).
 	SocialLogin http.Handler
+	// TenantService is the tenant management service.
+	TenantService *tenantservice.TenantService
 }
 
 // NewRouter creates the main HTTP router with all middleware and routes.
@@ -75,17 +78,19 @@ func NewRouter(cfg RouterConfig) http.Handler {
 			r.Use(authMiddleware.Handler)
 			authHandler.ProtectedRoutes(r)
 			userHandler.Routes(r)
+			if cfg.TenantService != nil {
+				tenantHandler := NewTenantHandler(cfg.TenantService, logger)
+				tenantHandler.Routes(r)
+			}
 		})
 	})
 
 	// ─── OIDC Provider ───────────────────────────────
 	if cfg.OIDCProvider != nil {
-		r.Mount("/oidc", cfg.OIDCProvider)
+		r.Mount("/", cfg.OIDCProvider)
 	} else {
-		r.Route("/oidc", func(r chi.Router) {
-			r.Get("/keys", func(w http.ResponseWriter, _ *http.Request) {
-				writeJSON(w, http.StatusOK, map[string]any{"keys": []any{}})
-			})
+		r.Get("/keys", func(w http.ResponseWriter, _ *http.Request) {
+			writeJSON(w, http.StatusOK, map[string]any{"keys": []any{}})
 		})
 	}
 
@@ -114,12 +119,12 @@ func NewRouter(cfg RouterConfig) http.Handler {
 			}
 			writeJSON(w, http.StatusOK, map[string]any{
 				"issuer":                                baseURL,
-				"authorization_endpoint":                baseURL + "/oidc/authorize",
-				"token_endpoint":                        baseURL + "/oidc/token",
-				"userinfo_endpoint":                     baseURL + "/oidc/userinfo",
-				"jwks_uri":                              baseURL + "/oidc/keys",
-				"revocation_endpoint":                   baseURL + "/oidc/revoke",
-				"introspection_endpoint":                baseURL + "/oidc/introspect",
+				"authorization_endpoint":                baseURL + "/authorize",
+				"token_endpoint":                        baseURL + "/oauth/token",
+				"userinfo_endpoint":                     baseURL + "/userinfo",
+				"jwks_uri":                              baseURL + "/keys",
+				"revocation_endpoint":                   baseURL + "/revoke",
+				"introspection_endpoint":                baseURL + "/oauth/introspect",
 				"response_types_supported":              []string{"code"},
 				"subject_types_supported":               []string{"public"},
 				"id_token_signing_alg_values_supported": []string{"RS256", "ES256", "EdDSA"},
