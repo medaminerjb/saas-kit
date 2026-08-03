@@ -106,7 +106,7 @@ var loginTmpl = template.Must(template.New("login").Parse(`<!DOCTYPE html>
   {{if .Error}}
   <div class="error">{{.Error}}</div>
   {{end}}
-  <form method="POST" action="/oidc/login?authRequestID={{.AuthRequestID}}">
+  <form method="POST" action="/login?authRequestID={{.AuthRequestID}}">
     <input type="hidden" name="authRequestID" value="{{.AuthRequestID}}">
     <div class="form-group">
       <label for="email">Email</label>
@@ -173,6 +173,6 @@ func LoginSubmitHandler(storage *Storage, provider *op.Provider) http.HandlerFun
 		}
 
 		// Authentication succeeded — redirect back to the OIDC callback
-		http.Redirect(w, r, "/oidc/authorize/callback?id="+authRequestID, http.StatusFound)
+		http.Redirect(w, r, "/authorize/callback?id="+authRequestID, http.StatusFound)
 	}
 }
