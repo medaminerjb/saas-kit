@@ -361,10 +361,3 @@ func TestIntegration_MultiTenancy_E2E(t *testing.T) {
 	})
 }
 
-// Stub/helper to extract credentials/tokens from JSON body
-type testLoginResponse struct {
-	Tokens struct {
-		AccessToken  string `json:"access_token"`
-		RefreshToken string `json:"refresh_token"`
-	} `json:"tokens"`
-}
