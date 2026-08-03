@@ -262,7 +262,7 @@ func (s *Storage) GetClientByClientID(ctx context.Context, clientID string) (op.
 		ResponseTypes_:   toResponseTypes(responseTypes),
 		GrantTypes_:      toGrantTypes(grantTypes),
 		AccessTokenType_: toAccessTokenType(tokenType),
-		LoginURL_:        func(reqID string) string { return "/oidc/login?authRequestID=" + reqID },
+		LoginURL_:        func(reqID string) string { return "/login?authRequestID=" + reqID },
 		DevMode_:         false,
 	}, nil
 }
