@@ -23,31 +23,47 @@ func NewSessionRepo(pool *pgxpool.Pool) *SessionRepo {
 
 // Create inserts a new session.
 func (r *SessionRepo) Create(ctx context.Context, session *domain.Session) error {
-	query := `INSERT INTO sessions (id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6::inet, $7, $8)`
+	query := `INSERT INTO sessions (id, user_id, tenant_id, refresh_token_hash, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc, user_agent, ip_address, expires_at, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::inet, $10, $11)`
 
 	_, err := r.pool.Exec(ctx, query,
 		session.ID, session.UserID, session.TenantID,
-		session.RefreshTokenHash, session.UserAgent,
-		nullableIP(session.IPAddress), session.ExpiresAt, session.CreatedAt,
+		session.RefreshTokenHash, session.PreviousRefreshTokenHash,
+		session.RotatedAt, session.GraceRefreshTokenEnc,
+		session.UserAgent, nullableIP(session.IPAddress),
+		session.ExpiresAt, session.CreatedAt,
 	)
 	return err
 }
 
 // GetByRefreshTokenHash retrieves an active session by its refresh token hash.
+// Also checks previous token hash within 10-second grace window after rotation.
 func (r *SessionRepo) GetByRefreshTokenHash(ctx context.Context, hash string) (*domain.Session, error) {
-	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address::text, expires_at, created_at, revoked_at
-		FROM sessions WHERE refresh_token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW()`
+	query := `SELECT id, user_id, tenant_id, refresh_token_hash, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc, user_agent, ip_address::text, expires_at, created_at, revoked_at
+		FROM sessions 
+		WHERE (refresh_token_hash = $1 OR (previous_refresh_token_hash = $1 AND rotated_at > NOW() - INTERVAL '10 seconds'))
+		AND revoked_at IS NULL AND expires_at > NOW()`
 
 	return r.scanSession(r.pool.QueryRow(ctx, query, hash))
 }
 
 // GetByID retrieves a session by ID.
 func (r *SessionRepo) GetByID(ctx context.Context, id uuid.UUID) (*domain.Session, error) {
-	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address::text, expires_at, created_at, revoked_at
+	query := `SELECT id, user_id, tenant_id, refresh_token_hash, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc, user_agent, ip_address::text, expires_at, created_at, revoked_at
 		FROM sessions WHERE id = $1`
 
 	return r.scanSession(r.pool.QueryRow(ctx, query, id))
+}
+
+// Update updates a session (used for grace window rotation).
+func (r *SessionRepo) Update(ctx context.Context, session *domain.Session) error {
+	query := `UPDATE sessions 
+		SET previous_refresh_token_hash = $1, rotated_at = $2, grace_refresh_token_enc = $3
+		WHERE id = $4`
+	_, err := r.pool.Exec(ctx, query,
+		session.PreviousRefreshTokenHash, session.RotatedAt, session.GraceRefreshTokenEnc, session.ID,
+	)
+	return err
 }
 
 // Revoke marks a session as revoked.
@@ -66,7 +82,7 @@ func (r *SessionRepo) RevokeAllForUser(ctx context.Context, userID uuid.UUID) er
 
 // ListForUser returns all active sessions for a user.
 func (r *SessionRepo) ListForUser(ctx context.Context, userID uuid.UUID) ([]*domain.Session, error) {
-	query := `SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address::text, expires_at, created_at, revoked_at
+	query := `SELECT id, user_id, tenant_id, refresh_token_hash, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc, user_agent, ip_address::text, expires_at, created_at, revoked_at
 		FROM sessions WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW()
 		ORDER BY created_at DESC`
 
@@ -102,6 +118,7 @@ func (r *SessionRepo) scanSession(row scannable) (*domain.Session, error) {
 	var ipAddress *string
 	err := row.Scan(
 		&s.ID, &s.UserID, &s.TenantID, &s.RefreshTokenHash,
+		&s.PreviousRefreshTokenHash, &s.RotatedAt, &s.GraceRefreshTokenEnc,
 		&s.UserAgent, &ipAddress, &s.ExpiresAt, &s.CreatedAt, &s.RevokedAt,
 	)
 	if err != nil {
