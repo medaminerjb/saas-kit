@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/medaminerjb/saas-kit/internal/identity/crypto"
-	idcrypto "github.com/medaminerjb/saas-kit/internal/identity/crypto"
 	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
 
@@ -243,7 +242,7 @@ func TestAuthService_Logout(t *testing.T) {
 
 func TestAuthService_RefreshTokens(t *testing.T) {
 	tmpDir := t.TempDir()
-	kp, err := idcrypto.LoadOrGenerateKeyPair(tmpDir, "RS256", true)
+	kp, err := crypto.LoadOrGenerateKeyPair(tmpDir, "RS256", true)
 	if err != nil {
 		t.Fatalf("key generation: %v", err)
 	}
@@ -257,7 +256,7 @@ func TestAuthService_RefreshTokens(t *testing.T) {
 		AccessTTL:  15 * time.Minute,
 	}, nil)
 
-	hasher := idcrypto.NewHasher(idcrypto.Argon2Params{
+	hasher := crypto.NewHasher(crypto.Argon2Params{
 		Memory:      64 * 1024,
 		Iterations:  3,
 		Parallelism: 2,
@@ -265,7 +264,7 @@ func TestAuthService_RefreshTokens(t *testing.T) {
 		KeyLength:   32,
 	})
 
-	tokenHasher := idcrypto.NewTokenHasher("ci-test-secret-00000000000000000000000000000000000000000000")
+	tokenHasher := crypto.NewTokenHasher("ci-test-secret-00000000000000000000000000000000000000000000")
 
 	userID := uuid.New()
 	hash := "$argon2id$v=19$m=65536,t=3,p=2$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG"
