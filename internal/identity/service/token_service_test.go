@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/medaminerjb/saas-kit/internal/identity/crypto"
 	"github.com/medaminerjb/saas-kit/internal/identity/domain"
 )
@@ -32,7 +33,7 @@ func TestTokenService_GenerateAndValidate_RS256(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	token, err := svc.GenerateAccessToken(ctx, user, [16]byte{})
+	token, err := svc.GenerateAccessToken(ctx, user, uuid.New(), nil, nil, false)
 	if err != nil {
 		t.Fatalf("GenerateAccessToken() error: %v", err)
 	}
@@ -70,7 +71,7 @@ func TestTokenService_RejectsExpiredToken(t *testing.T) {
 	}, nil)
 
 	user := &domain.User{Status: domain.UserStatusActive}
-	token, _ := svc.GenerateAccessToken(context.Background(), user, [16]byte{})
+	token, _ := svc.GenerateAccessToken(context.Background(), user, uuid.New(), nil, nil, false)
 
 	_, err := svc.ValidateAccessToken(token)
 	if err == nil {
