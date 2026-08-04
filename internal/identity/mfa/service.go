@@ -298,7 +298,7 @@ func validateTOTPAtTime(key []byte, code string, t time.Time) bool {
 
 	// Generate HMAC-SHA1
 	h := hmac.New(sha1.New, key)
-	h.Write([]byte(fmt.Sprintf("%016x", timeSteps)))
+	fmt.Fprintf(h, "%016x", timeSteps)
 	hash := h.Sum(nil)
 
 	// Dynamic truncation
