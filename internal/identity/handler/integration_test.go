@@ -351,22 +351,46 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 
 	// 5. Grace Window Test - concurrent refresh within 10s should succeed
 	t.Run("5. Grace Window Rotation", func(t *testing.T) {
-		// Login again to get fresh tokens
+		// Register a new user for grace window test
+		regBody, _ := json.Marshal(map[string]string{
+			"email":    "grace@example.com",
+			"password": "password123",
+			"name":     "Grace Test User",
+		})
+		resp, err := client.Post(server.URL+"/api/v1/auth/register", "application/json", bytes.NewReader(regBody))
+		if err != nil {
+			t.Fatalf("failed to send registration request: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+		if resp.StatusCode != http.StatusCreated {
+			body, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected registration status 201 Created, got %d. Body: %s", resp.StatusCode, string(body))
+		}
+
+		// Login to get fresh tokens
 		loginBody, _ := json.Marshal(map[string]string{
 			"email":    "grace@example.com",
 			"password": "password123",
 		})
-		resp, err := client.Post(server.URL+"/api/v1/auth/login", "application/json", bytes.NewReader(loginBody))
+		resp, err = client.Post(server.URL+"/api/v1/auth/login", "application/json", bytes.NewReader(loginBody))
 		if err != nil {
 			t.Fatalf("failed to send login request: %v", err)
 		}
 		defer func() { _ = resp.Body.Close() }()
 
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected login status 200 OK, got %d. Body: %s", resp.StatusCode, string(body))
+		}
+
 		var loginResult map[string]any
 		if err := json.NewDecoder(resp.Body).Decode(&loginResult); err != nil {
 			t.Fatalf("failed to decode login response: %v", err)
 		}
-		tokens := loginResult["tokens"].(map[string]any)
+		tokens, ok := loginResult["tokens"].(map[string]any)
+		if !ok {
+			t.Fatalf("tokens missing or invalid in response: %v", loginResult)
+		}
 		oldRefresh := tokens["refresh_token"].(string)
 
 		// First refresh
@@ -408,8 +432,12 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 			if err := json.NewDecoder(resp.Body).Decode(&graceRefresh); err != nil {
 				t.Fatalf("failed to decode grace refresh: %v", err)
 			}
-			graceTokens := graceRefresh["tokens"].(map[string]any)
-			if graceTokens["refresh_token"] == oldRefresh {
+			// The refresh endpoint returns tokens directly, not nested under "tokens"
+			graceRefreshToken, ok := graceRefresh["refresh_token"].(string)
+			if !ok {
+				t.Fatalf("refresh_token missing or invalid in grace refresh response: %v", graceRefresh)
+			}
+			if graceRefreshToken == oldRefresh {
 				t.Error("grace refresh should return new tokens, not the old ones")
 			}
 		}

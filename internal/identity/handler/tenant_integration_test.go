@@ -383,9 +383,16 @@ func TestIntegration_MultiTenancy_E2E(t *testing.T) {
 		}
 
 		var invite map[string]any
-		_ = json.NewDecoder(resp.Body).Decode(&invite)
-		inviteToken = invite["token"].(string)
+		if err := json.NewDecoder(resp.Body).Decode(&invite); err != nil {
+			t.Fatalf("failed to decode invite response: %v", err)
+		}
 
+		token, ok := invite["token"].(string)
+		if !ok || token == "" {
+			t.Fatalf("expected invite token, got response: %#v", invite)
+		}
+
+		inviteToken = token
 		// Accept invitation
 		body, _ = json.Marshal(map[string]string{"token": inviteToken})
 		req, _ = http.NewRequest("POST", server.URL+"/api/v1/tenants/invitations/accept", bytes.NewReader(body))

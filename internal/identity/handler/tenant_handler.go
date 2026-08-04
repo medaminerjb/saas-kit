@@ -385,6 +385,10 @@ func GetTenantID(ctx context.Context) (uuid.UUID, bool) {
 
 // GetTenantRole extracts the member role from the context.
 func GetTenantRole(ctx context.Context) (domain.MemberRole, bool) {
-	val, ok := ctx.Value(tenantRoleKey).(domain.MemberRole)
-	return val, ok
+	val := ctx.Value(tenantRoleKey)
+	if val == nil {
+		return "", false
+	}
+	role, ok := val.(domain.MemberRole)
+	return role, ok
 }

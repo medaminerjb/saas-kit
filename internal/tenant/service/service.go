@@ -195,6 +195,12 @@ func (s *TenantService) AcceptInvitation(ctx context.Context, token string, user
 	// Check if already a member
 	existing, _ := s.repo.GetMember(ctx, invite.TenantID, userID)
 	if existing != nil {
+		// Update role if different
+		if existing.Role != invite.Role {
+			if err := s.repo.UpdateMemberRole(ctx, invite.TenantID, userID, invite.Role); err != nil {
+				s.logger.WarnContext(ctx, "failed to update member role", "user_id", userID, "old_role", existing.Role, "new_role", invite.Role)
+			}
+		}
 		// Update invitation status as accepted and return success
 		_ = s.repo.AcceptInvitation(ctx, invite.ID)
 		return nil
