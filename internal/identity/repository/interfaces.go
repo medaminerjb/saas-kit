@@ -27,6 +27,7 @@ type SessionRepository interface {
 	Create(ctx context.Context, session *domain.Session) error
 	GetByRefreshTokenHash(ctx context.Context, hash string) (*domain.Session, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Session, error)
+	Update(ctx context.Context, session *domain.Session) error
 	Revoke(ctx context.Context, id uuid.UUID) error
 	RevokeAllForUser(ctx context.Context, userID uuid.UUID) error
 	ListForUser(ctx context.Context, userID uuid.UUID) ([]*domain.Session, error)
