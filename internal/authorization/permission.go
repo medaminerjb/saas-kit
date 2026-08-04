@@ -5,11 +5,15 @@ package authorization
 type Permission string
 
 const (
-	PermTenantRead       Permission = "tenant.read"
-	PermTenantUpdate     Permission = "tenant.update"
-	PermTenantDelete     Permission = "tenant.delete"
-	PermMembersList      Permission = "members.list"
-	PermMembersInvite    Permission = "members.invite"
-	PermMembersRemove    Permission = "members.remove"
-	PermMembersUpdateRole Permission = "members.update_role"
+	PermTenantRead          Permission = "tenant.read"
+	PermTenantUpdate        Permission = "tenant.update"
+	PermTenantDelete        Permission = "tenant.delete"
+	PermMembersList         Permission = "members.list"
+	PermMembersInvite       Permission = "members.invite"
+	PermMembersRemove       Permission = "members.remove"
+	PermMembersUpdateRole   Permission = "members.update_role"
+	PermTenantMetadataRead  Permission = "tenant.metadata.read"
+	PermTenantMetadataWrite Permission = "tenant.metadata.write"
+	PermUserMetadataRead    Permission = "user.metadata.read"
+	PermUserMetadataWrite   Permission = "user.metadata.write"
 )

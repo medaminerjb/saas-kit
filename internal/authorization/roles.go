@@ -8,22 +8,32 @@ var rolePermissions = map[tenantdomain.MemberRole][]Permission{
 	tenantdomain.RoleOwner: {
 		PermTenantRead, PermTenantUpdate, PermTenantDelete,
 		PermMembersList, PermMembersInvite, PermMembersRemove, PermMembersUpdateRole,
+		PermTenantMetadataRead, PermTenantMetadataWrite,
+		PermUserMetadataRead, PermUserMetadataWrite,
 	},
 	tenantdomain.RoleAdmin: {
 		PermTenantRead, PermTenantUpdate,
 		PermMembersList, PermMembersInvite, PermMembersRemove,
+		PermTenantMetadataRead, PermTenantMetadataWrite,
+		PermUserMetadataRead, PermUserMetadataWrite,
 	},
 	tenantdomain.RoleManager: {
 		PermTenantRead,
 		PermMembersList, PermMembersInvite,
+		PermTenantMetadataRead, PermTenantMetadataWrite,
+		PermUserMetadataRead,
 	},
 	tenantdomain.RoleMember: {
 		PermTenantRead,
 		PermMembersList,
+		PermTenantMetadataRead,
+		PermUserMetadataRead,
 	},
 	tenantdomain.RoleViewer: {
 		PermTenantRead,
 		PermMembersList,
+		PermTenantMetadataRead,
+		PermUserMetadataRead,
 	},
 }
 
