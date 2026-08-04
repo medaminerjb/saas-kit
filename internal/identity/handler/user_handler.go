@@ -28,6 +28,8 @@ func (h *UserHandler) Routes(r chi.Router) {
 	r.Patch("/users/me", h.UpdateMe)
 	r.Get("/users/me/sessions", h.ListSessions)
 	r.Delete("/users/me/sessions/{sessionID}", h.RevokeSession)
+	r.Get("/users/me/metadata", h.GetMetadata)
+	r.Patch("/users/me/metadata", h.UpdateMetadata)
 }
 
 // GetMe handles GET /api/v1/users/me
@@ -129,4 +131,68 @@ func (h *UserHandler) RevokeSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"message": "session revoked"})
+}
+
+// GetMetadata handles GET /api/v1/users/me/metadata
+func (h *UserHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
+	claims := GetClaims(r.Context())
+	if claims == nil {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	userID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	user, err := h.identity.GetCurrentUser(r.Context(), userID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "user not found")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"metadata_public": user.MetadataPublic,
+	})
+}
+
+type updateMetadataRequest struct {
+	MetadataPublic  map[string]interface{} `json:"metadata_public,omitempty"`
+	MetadataPrivate map[string]interface{} `json:"metadata_private,omitempty"`
+}
+
+// UpdateMetadata handles PATCH /api/v1/users/me/metadata
+func (h *UserHandler) UpdateMetadata(w http.ResponseWriter, r *http.Request) {
+	claims := GetClaims(r.Context())
+	if claims == nil {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	userID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	var req updateMetadataRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	user, err := h.identity.UpdateUserMetadata(r.Context(), userID, service.UpdateMetadataInput{
+		MetadataPublic:  req.MetadataPublic,
+		MetadataPrivate: req.MetadataPrivate,
+	})
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "update failed")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"metadata_public": user.MetadataPublic,
+	})
 }
