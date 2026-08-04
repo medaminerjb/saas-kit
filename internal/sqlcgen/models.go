@@ -371,15 +371,18 @@ type OidcClient struct {
 }
 
 type Session struct {
-	ID               uuid.UUID          `db:"id" json:"id"`
-	UserID           uuid.UUID          `db:"user_id" json:"user_id"`
-	TenantID         pgtype.UUID        `db:"tenant_id" json:"tenant_id"`
-	RefreshTokenHash string             `db:"refresh_token_hash" json:"refresh_token_hash"`
-	UserAgent        *string            `db:"user_agent" json:"user_agent"`
-	IpAddress        *netip.Addr        `db:"ip_address" json:"ip_address"`
-	ExpiresAt        time.Time          `db:"expires_at" json:"expires_at"`
-	CreatedAt        time.Time          `db:"created_at" json:"created_at"`
-	RevokedAt        pgtype.Timestamptz `db:"revoked_at" json:"revoked_at"`
+	ID                       uuid.UUID          `db:"id" json:"id"`
+	UserID                   uuid.UUID          `db:"user_id" json:"user_id"`
+	TenantID                 pgtype.UUID        `db:"tenant_id" json:"tenant_id"`
+	RefreshTokenHash         string             `db:"refresh_token_hash" json:"refresh_token_hash"`
+	UserAgent                *string            `db:"user_agent" json:"user_agent"`
+	IpAddress                *netip.Addr        `db:"ip_address" json:"ip_address"`
+	ExpiresAt                time.Time          `db:"expires_at" json:"expires_at"`
+	CreatedAt                time.Time          `db:"created_at" json:"created_at"`
+	RevokedAt                pgtype.Timestamptz `db:"revoked_at" json:"revoked_at"`
+	PreviousRefreshTokenHash *string            `db:"previous_refresh_token_hash" json:"previous_refresh_token_hash"`
+	RotatedAt                pgtype.Timestamptz `db:"rotated_at" json:"rotated_at"`
+	GraceRefreshTokenEnc     *string            `db:"grace_refresh_token_enc" json:"grace_refresh_token_enc"`
 }
 
 type Tenant struct {

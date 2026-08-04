@@ -143,7 +143,10 @@ func (s *TenantService) InviteMember(ctx context.Context, tenantID uuid.UUID, em
 		return nil, "", fmt.Errorf("email is required")
 	}
 
-	if role != domain.RoleOwner && role != domain.RoleAdmin && role != domain.RoleMember {
+	switch role {
+	case domain.RoleOwner, domain.RoleAdmin, domain.RoleManager, domain.RoleMember, domain.RoleViewer:
+		// allowed
+	default:
 		return nil, "", fmt.Errorf("invalid member role")
 	}
 
