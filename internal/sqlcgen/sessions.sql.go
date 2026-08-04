@@ -16,7 +16,7 @@ import (
 const createSession = `-- name: CreateSession :one
 INSERT INTO sessions (user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at)
 VALUES ($1, $2, $3, $4, $5::inet, $6)
-RETURNING id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
+RETURNING id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc
 `
 
 type CreateSessionParams struct {
@@ -48,6 +48,9 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.PreviousRefreshTokenHash,
+		&i.RotatedAt,
+		&i.GraceRefreshTokenEnc,
 	)
 	return i, err
 }
@@ -66,7 +69,7 @@ func (q *Queries) DeleteExpiredSessions(ctx context.Context) (int64, error) {
 }
 
 const getSessionByID = `-- name: GetSessionByID :one
-SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at FROM sessions WHERE id = $1
+SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc FROM sessions WHERE id = $1
 `
 
 func (q *Queries) GetSessionByID(ctx context.Context, id uuid.UUID) (Session, error) {
@@ -82,12 +85,15 @@ func (q *Queries) GetSessionByID(ctx context.Context, id uuid.UUID) (Session, er
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.PreviousRefreshTokenHash,
+		&i.RotatedAt,
+		&i.GraceRefreshTokenEnc,
 	)
 	return i, err
 }
 
 const getSessionByRefreshTokenHash = `-- name: GetSessionByRefreshTokenHash :one
-SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at FROM sessions
+SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc FROM sessions
 WHERE refresh_token_hash = $1
   AND revoked_at IS NULL
   AND expires_at > NOW()
@@ -106,12 +112,15 @@ func (q *Queries) GetSessionByRefreshTokenHash(ctx context.Context, refreshToken
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.RevokedAt,
+		&i.PreviousRefreshTokenHash,
+		&i.RotatedAt,
+		&i.GraceRefreshTokenEnc,
 	)
 	return i, err
 }
 
 const listUserSessions = `-- name: ListUserSessions :many
-SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at FROM sessions
+SELECT id, user_id, tenant_id, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at, previous_refresh_token_hash, rotated_at, grace_refresh_token_enc FROM sessions
 WHERE user_id = $1
   AND revoked_at IS NULL
   AND expires_at > NOW()
@@ -137,6 +146,9 @@ func (q *Queries) ListUserSessions(ctx context.Context, userID uuid.UUID) ([]Ses
 			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.RevokedAt,
+			&i.PreviousRefreshTokenHash,
+			&i.RotatedAt,
+			&i.GraceRefreshTokenEnc,
 		); err != nil {
 			return nil, err
 		}
