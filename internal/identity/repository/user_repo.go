@@ -3,6 +3,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -24,21 +25,30 @@ func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
 
 // Create inserts a new user.
 func (r *UserRepo) Create(ctx context.Context, user *domain.User) error {
+	metadataPublicBytes, err := json.Marshal(user.MetadataPublic)
+	if err != nil {
+		return err
+	}
+	metadataPrivateBytes, err := json.Marshal(user.MetadataPrivate)
+	if err != nil {
+		return err
+	}
 	query := `
-		INSERT INTO users (id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		INSERT INTO users (id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, metadata_public, metadata_private, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
-	_, err := r.pool.Exec(ctx, query,
+	_, err = r.pool.Exec(ctx, query,
 		user.ID, user.TenantID, user.Email, user.Name,
 		user.PasswordHash, user.Status, user.EmailVerified,
-		user.AvatarURL, user.CreatedAt, user.UpdatedAt,
+		user.AvatarURL, metadataPublicBytes, metadataPrivateBytes,
+		user.CreatedAt, user.UpdatedAt,
 	)
 	return err
 }
 
 // GetByID retrieves a user by ID, excluding soft-deleted users.
 func (r *UserRepo) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
-	query := `SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at
+	query := `SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, metadata_public, metadata_private, created_at, updated_at, last_login_at, deleted_at
 		FROM users WHERE id = $1 AND deleted_at IS NULL`
 
 	return r.scanUser(r.pool.QueryRow(ctx, query, id))
@@ -46,7 +56,7 @@ func (r *UserRepo) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, err
 
 // GetByEmail retrieves a user by email, scoped to an optional tenant.
 func (r *UserRepo) GetByEmail(ctx context.Context, email string, tenantID *uuid.UUID) (*domain.User, error) {
-	query := `SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at
+	query := `SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, metadata_public, metadata_private, created_at, updated_at, last_login_at, deleted_at
 		FROM users
 		WHERE email = $1 AND deleted_at IS NULL
 		AND (tenant_id = $2 OR (tenant_id IS NULL AND $2::uuid IS NULL))`
@@ -60,6 +70,15 @@ func (r *UserRepo) Update(ctx context.Context, user *domain.User) error {
 		WHERE id = $1 AND deleted_at IS NULL`
 
 	_, err := r.pool.Exec(ctx, query, user.ID, user.Name, user.Email, user.AvatarURL, user.Status, user.EmailVerified)
+	return err
+}
+
+// UpdateMetadata updates a user's metadata fields.
+func (r *UserRepo) UpdateMetadata(ctx context.Context, id uuid.UUID, metadataPublic, metadataPrivate map[string]interface{}) error {
+	query := `UPDATE users SET metadata_public = $2, metadata_private = $3, updated_at = NOW()
+		WHERE id = $1 AND deleted_at IS NULL`
+
+	_, err := r.pool.Exec(ctx, query, id, metadataPublic, metadataPrivate)
 	return err
 }
 
@@ -93,7 +112,7 @@ func (r *UserRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 
 // List returns a paginated list of users.
 func (r *UserRepo) List(ctx context.Context, tenantID *uuid.UUID, limit, offset int32) ([]*domain.User, error) {
-	query := `SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at
+	query := `SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, metadata_public, metadata_private, created_at, updated_at, last_login_at, deleted_at
 		FROM users
 		WHERE deleted_at IS NULL AND (tenant_id = $1 OR $1::uuid IS NULL)
 		ORDER BY created_at DESC LIMIT $2 OFFSET $3`
@@ -130,9 +149,11 @@ type scannable interface {
 
 func (r *UserRepo) scanUser(row scannable) (*domain.User, error) {
 	var u domain.User
+	var metadataPublicBytes, metadataPrivateBytes []byte
 	err := row.Scan(
 		&u.ID, &u.TenantID, &u.Email, &u.Name, &u.PasswordHash,
 		&u.Status, &u.EmailVerified, &u.AvatarURL,
+		&metadataPublicBytes, &metadataPrivateBytes,
 		&u.CreatedAt, &u.UpdatedAt, &u.LastLoginAt, &u.DeletedAt,
 	)
 	if err != nil {
@@ -141,5 +162,20 @@ func (r *UserRepo) scanUser(row scannable) (*domain.User, error) {
 		}
 		return nil, err
 	}
+
+	u.MetadataPublic = make(map[string]interface{})
+	if len(metadataPublicBytes) > 0 {
+		if err := json.Unmarshal(metadataPublicBytes, &u.MetadataPublic); err != nil {
+			return nil, err
+		}
+	}
+
+	u.MetadataPrivate = make(map[string]interface{})
+	if len(metadataPrivateBytes) > 0 {
+		if err := json.Unmarshal(metadataPrivateBytes, &u.MetadataPrivate); err != nil {
+			return nil, err
+		}
+	}
+
 	return &u, nil
 }
