@@ -522,4 +522,130 @@ func TestIntegration_MultiTenancy_E2E(t *testing.T) {
 			t.Errorf("Viewer should not be able to invite members, got %d", resp.StatusCode)
 		}
 	})
+
+	t.Run("Tenant Metadata CRUD", func(t *testing.T) {
+		// Get tenant metadata (should be empty initially)
+		req, _ := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/tenants/%s/metadata", server.URL, tenantID), nil)
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		var metadataResp map[string]any
+		_ = json.NewDecoder(resp.Body).Decode(&metadataResp)
+
+		// Update tenant metadata
+		body, _ := json.Marshal(map[string]any{
+			"metadata": map[string]any{
+				"theme":       "dark",
+				"preferences": map[string]string{"language": "en"},
+			},
+		})
+		req, _ = http.NewRequest("PATCH", fmt.Sprintf("%s/api/v1/tenants/%s/metadata", server.URL, tenantID), bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		// Verify metadata was updated
+		req, _ = http.NewRequest("GET", fmt.Sprintf("%s/api/v1/tenants/%s/metadata", server.URL, tenantID), nil)
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		_ = json.NewDecoder(resp.Body).Decode(&metadataResp)
+		metadata := metadataResp["metadata"].(map[string]any)
+		if metadata["theme"] != "dark" {
+			t.Errorf("expected theme to be 'dark', got %v", metadata["theme"])
+		}
+	})
+
+	t.Run("User Metadata CRUD", func(t *testing.T) {
+		// Get user metadata (should be empty initially)
+		req, _ := http.NewRequest("GET", server.URL+"/api/v1/users/me/metadata", nil)
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		var metadataResp map[string]any
+		_ = json.NewDecoder(resp.Body).Decode(&metadataResp)
+
+		// Update user metadata
+		body, _ := json.Marshal(map[string]any{
+			"metadata_public": map[string]any{
+				"preferences":         map[string]string{"timezone": "UTC"},
+				"onboarding_complete": true,
+			},
+		})
+		req, _ = http.NewRequest("PATCH", server.URL+"/api/v1/users/me/metadata", bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		// Verify metadata was updated
+		req, _ = http.NewRequest("GET", server.URL+"/api/v1/users/me/metadata", nil)
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		_ = json.NewDecoder(resp.Body).Decode(&metadataResp)
+		metadataPublic := metadataResp["metadata_public"].(map[string]any)
+		if metadataPublic["onboarding_complete"] != true {
+			t.Errorf("expected onboarding_complete to be true, got %v", metadataPublic["onboarding_complete"])
+		}
+	})
 }
