@@ -348,4 +348,70 @@ func TestIntegration_E2E_Flows(t *testing.T) {
 			t.Errorf("expected refresh status 401 Unauthorized for revoked session, got %d", respRef.StatusCode)
 		}
 	})
+
+	// 5. Grace Window Test - concurrent refresh within 10s should succeed
+	t.Run("5. Grace Window Rotation", func(t *testing.T) {
+		// Login again to get fresh tokens
+		loginBody, _ := json.Marshal(map[string]string{
+			"email":    "grace@example.com",
+			"password": "password123",
+		})
+		resp, err := client.Post(server.URL+"/api/v1/auth/login", "application/json", bytes.NewReader(loginBody))
+		if err != nil {
+			t.Fatalf("failed to send login request: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		var loginResult map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&loginResult); err != nil {
+			t.Fatalf("failed to decode login response: %v", err)
+		}
+		tokens := loginResult["tokens"].(map[string]any)
+		oldRefresh := tokens["refresh_token"].(string)
+
+		// First refresh
+		refreshBody, _ := json.Marshal(map[string]string{
+			"refresh_token": oldRefresh,
+		})
+		resp, err = client.Post(server.URL+"/api/v1/auth/refresh", "application/json", bytes.NewReader(refreshBody))
+		if err != nil {
+			t.Fatalf("failed to send first refresh: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			t.Fatalf("first refresh failed: %d, body: %s", resp.StatusCode, string(body))
+		}
+
+		var firstRefresh map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&firstRefresh); err != nil {
+			t.Fatalf("failed to decode first refresh: %v", err)
+		}
+
+		// Try to refresh again with the OLD token within grace window (should succeed)
+		refreshBody, _ = json.Marshal(map[string]string{
+			"refresh_token": oldRefresh,
+		})
+		resp, err = client.Post(server.URL+"/api/v1/auth/refresh", "application/json", bytes.NewReader(refreshBody))
+		if err != nil {
+			t.Fatalf("failed to send grace refresh: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			t.Errorf("grace window refresh failed: %d, body: %s (expected 200 within 10s grace window)", resp.StatusCode, string(body))
+		} else {
+			// Verify we got new tokens
+			var graceRefresh map[string]any
+			if err := json.NewDecoder(resp.Body).Decode(&graceRefresh); err != nil {
+				t.Fatalf("failed to decode grace refresh: %v", err)
+			}
+			graceTokens := graceRefresh["tokens"].(map[string]any)
+			if graceTokens["refresh_token"] == oldRefresh {
+				t.Error("grace refresh should return new tokens, not the old ones")
+			}
+		}
+	})
 }
