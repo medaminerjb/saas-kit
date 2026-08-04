@@ -13,12 +13,13 @@ import (
 
 // mockUserRepository implements repository.UserRepository for testing.
 type mockUserRepository struct {
-	getByIDFunc    func(ctx context.Context, id uuid.UUID) (*domain.User, error)
-	getByEmailFunc func(ctx context.Context, email string, tenantID *uuid.UUID) (*domain.User, error)
-	updateFunc     func(ctx context.Context, user *domain.User) error
-	softDeleteFunc func(ctx context.Context, id uuid.UUID) error
-	listFunc       func(ctx context.Context, tenantID *uuid.UUID, limit, offset int32) ([]*domain.User, error)
-	countFunc      func(ctx context.Context, tenantID *uuid.UUID) (int64, error)
+	getByIDFunc        func(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	getByEmailFunc     func(ctx context.Context, email string, tenantID *uuid.UUID) (*domain.User, error)
+	updateFunc         func(ctx context.Context, user *domain.User) error
+	updateMetadataFunc func(ctx context.Context, id uuid.UUID, metadataPublic, metadataPrivate map[string]interface{}) error
+	softDeleteFunc     func(ctx context.Context, id uuid.UUID) error
+	listFunc           func(ctx context.Context, tenantID *uuid.UUID, limit, offset int32) ([]*domain.User, error)
+	countFunc          func(ctx context.Context, tenantID *uuid.UUID) (int64, error)
 }
 
 func (m *mockUserRepository) Create(ctx context.Context, user *domain.User) error {
@@ -42,6 +43,13 @@ func (m *mockUserRepository) GetByEmail(ctx context.Context, email string, tenan
 func (m *mockUserRepository) Update(ctx context.Context, user *domain.User) error {
 	if m.updateFunc != nil {
 		return m.updateFunc(ctx, user)
+	}
+	return nil
+}
+
+func (m *mockUserRepository) UpdateMetadata(ctx context.Context, id uuid.UUID, metadataPublic, metadataPrivate map[string]interface{}) error {
+	if m.updateMetadataFunc != nil {
+		return m.updateMetadataFunc(ctx, id, metadataPublic, metadataPrivate)
 	}
 	return nil
 }

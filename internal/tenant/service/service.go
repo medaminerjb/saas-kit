@@ -131,6 +131,31 @@ func (s *TenantService) UpdateTenant(ctx context.Context, tenantID uuid.UUID, na
 	return tenant, nil
 }
 
+// UpdateTenantMetadata updates tenant metadata.
+func (s *TenantService) UpdateTenantMetadata(ctx context.Context, tenantID uuid.UUID, metadata map[string]interface{}) (*domain.Tenant, error) {
+	tenant, err := s.repo.GetByID(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if metadata != nil {
+		tenant.Metadata = metadata
+	}
+
+	if err := s.repo.UpdateMetadata(ctx, tenantID, tenant.Metadata); err != nil {
+		return nil, fmt.Errorf("failed to update tenant metadata: %w", err)
+	}
+
+	_ = s.publisher.Publish(ctx, events.Event{
+		Type:      "tenant.metadata.updated",
+		TargetID:  &tenantID,
+		Payload:   map[string]interface{}{"metadata": tenant.Metadata},
+		Timestamp: time.Now(),
+	})
+
+	return tenant, nil
+}
+
 // ListTenantsForUser returns all tenants the user is a member of.
 func (s *TenantService) ListTenantsForUser(ctx context.Context, userID uuid.UUID) ([]*domain.Tenant, []domain.MemberRole, error) {
 	return s.repo.ListForUser(ctx, userID)

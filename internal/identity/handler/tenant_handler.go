@@ -46,6 +46,8 @@ func (h *TenantHandler) Routes(r chi.Router) {
 		r.Use(h.RequireTenantMembership)
 		r.Get("/", h.Get)
 		r.With(authorization.RequirePermission(authorization.PermTenantUpdate, GetTenantRole)).Patch("/", h.Update)
+		r.Get("/metadata", h.GetMetadata)
+		r.With(authorization.RequirePermission(authorization.PermTenantMetadataWrite, GetTenantRole)).Patch("/metadata", h.UpdateMetadata)
 		r.Get("/members", h.ListMembers)
 		r.With(authorization.RequirePermission(authorization.PermMembersInvite, GetTenantRole)).Post("/members", h.InviteMember)
 		r.Delete("/members/{userID}", h.RemoveMember)
@@ -234,6 +236,52 @@ func (h *TenantHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, t)
+}
+
+type updateTenantMetadataRequest struct {
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+}
+
+func (h *TenantHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := GetTenantID(r.Context())
+	if !ok {
+		writeError(w, http.StatusNotFound, "tenant context missing")
+		return
+	}
+
+	t, err := h.tenantService.GetTenant(r.Context(), tenantID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "tenant not found")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"metadata": t.Metadata,
+	})
+}
+
+func (h *TenantHandler) UpdateMetadata(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := GetTenantID(r.Context())
+	if !ok {
+		writeError(w, http.StatusNotFound, "tenant context missing")
+		return
+	}
+
+	var req updateTenantMetadataRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	t, err := h.tenantService.UpdateTenantMetadata(r.Context(), tenantID, req.Metadata)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"metadata": t.Metadata,
+	})
 }
 
 func (h *TenantHandler) ListMembers(w http.ResponseWriter, r *http.Request) {

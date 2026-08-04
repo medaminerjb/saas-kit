@@ -23,18 +23,20 @@ const (
 
 // User represents an identity in the system.
 type User struct {
-	ID            uuid.UUID  `json:"id"`
-	TenantID      *uuid.UUID `json:"tenant_id,omitempty"`
-	Email         string     `json:"email"`
-	Name          string     `json:"name"`
-	PasswordHash  *string    `json:"-"` // Never serialized
-	Status        UserStatus `json:"status"`
-	EmailVerified bool       `json:"email_verified"`
-	AvatarURL     *string    `json:"avatar_url,omitempty"`
-	CreatedAt     time.Time  `json:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at"`
-	LastLoginAt   *time.Time `json:"last_login_at,omitempty"`
-	DeletedAt     *time.Time `json:"-"`
+	ID              uuid.UUID              `json:"id"`
+	TenantID        *uuid.UUID             `json:"tenant_id,omitempty"`
+	Email           string                 `json:"email"`
+	Name            string                 `json:"name"`
+	PasswordHash    *string                `json:"-"` // Never serialized
+	Status          UserStatus             `json:"status"`
+	EmailVerified   bool                   `json:"email_verified"`
+	AvatarURL       *string                `json:"avatar_url,omitempty"`
+	MetadataPublic  map[string]interface{} `json:"metadata_public,omitempty"`
+	MetadataPrivate map[string]interface{} `json:"-"` // Never serialized to clients
+	CreatedAt       time.Time              `json:"created_at"`
+	UpdatedAt       time.Time              `json:"updated_at"`
+	LastLoginAt     *time.Time             `json:"last_login_at,omitempty"`
+	DeletedAt       *time.Time             `json:"-"`
 }
 
 // IsActive returns true if the user can authenticate.

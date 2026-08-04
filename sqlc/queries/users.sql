@@ -1,6 +1,6 @@
 -- name: CreateUser :one
-INSERT INTO users (email, name, password_hash, status, email_verified, avatar_url, tenant_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO users (email, name, password_hash, status, email_verified, avatar_url, tenant_id, metadata_public, metadata_private)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: GetUserByID :one
@@ -19,6 +19,14 @@ SET name = COALESCE(sqlc.narg('name'), name),
     avatar_url = COALESCE(sqlc.narg('avatar_url'), avatar_url),
     status = COALESCE(sqlc.narg('status'), status),
     email_verified = COALESCE(sqlc.narg('email_verified'), email_verified),
+    updated_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL
+RETURNING *;
+
+-- name: UpdateUserMetadata :one
+UPDATE users
+SET metadata_public = COALESCE(sqlc.narg('metadata_public'), metadata_public),
+    metadata_private = COALESCE(sqlc.narg('metadata_private'), metadata_private),
     updated_at = NOW()
 WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;

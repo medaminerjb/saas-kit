@@ -64,17 +64,18 @@ func (q *Queries) AddTenantMember(ctx context.Context, arg AddTenantMemberParams
 
 const createTenant = `-- name: CreateTenant :one
 INSERT INTO tenants (
-    name, slug, status, plan, created_at, updated_at
+    name, slug, status, plan, metadata, created_at, updated_at
 ) VALUES (
-    $1, $2, $3, $4, NOW(), NOW()
-) RETURNING id, name, slug, status, plan, created_at, updated_at
+    $1, $2, $3, $4, $5, NOW(), NOW()
+) RETURNING id, name, slug, status, plan, created_at, updated_at, metadata
 `
 
 type CreateTenantParams struct {
-	Name   string `db:"name" json:"name"`
-	Slug   string `db:"slug" json:"slug"`
-	Status string `db:"status" json:"status"`
-	Plan   string `db:"plan" json:"plan"`
+	Name     string `db:"name" json:"name"`
+	Slug     string `db:"slug" json:"slug"`
+	Status   string `db:"status" json:"status"`
+	Plan     string `db:"plan" json:"plan"`
+	Metadata []byte `db:"metadata" json:"metadata"`
 }
 
 func (q *Queries) CreateTenant(ctx context.Context, arg CreateTenantParams) (Tenant, error) {
@@ -83,6 +84,7 @@ func (q *Queries) CreateTenant(ctx context.Context, arg CreateTenantParams) (Ten
 		arg.Slug,
 		arg.Status,
 		arg.Plan,
+		arg.Metadata,
 	)
 	var i Tenant
 	err := row.Scan(
@@ -93,6 +95,7 @@ func (q *Queries) CreateTenant(ctx context.Context, arg CreateTenantParams) (Ten
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Metadata,
 	)
 	return i, err
 }
@@ -154,7 +157,7 @@ func (q *Queries) DeleteTenantInvitation(ctx context.Context, id uuid.UUID) erro
 }
 
 const getTenantByID = `-- name: GetTenantByID :one
-SELECT id, name, slug, status, plan, created_at, updated_at FROM tenants WHERE id = $1
+SELECT id, name, slug, status, plan, created_at, updated_at, metadata FROM tenants WHERE id = $1
 `
 
 func (q *Queries) GetTenantByID(ctx context.Context, id uuid.UUID) (Tenant, error) {
@@ -168,12 +171,13 @@ func (q *Queries) GetTenantByID(ctx context.Context, id uuid.UUID) (Tenant, erro
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Metadata,
 	)
 	return i, err
 }
 
 const getTenantBySlug = `-- name: GetTenantBySlug :one
-SELECT id, name, slug, status, plan, created_at, updated_at FROM tenants WHERE slug = $1
+SELECT id, name, slug, status, plan, created_at, updated_at, metadata FROM tenants WHERE slug = $1
 `
 
 func (q *Queries) GetTenantBySlug(ctx context.Context, slug string) (Tenant, error) {
@@ -187,6 +191,7 @@ func (q *Queries) GetTenantBySlug(ctx context.Context, slug string) (Tenant, err
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Metadata,
 	)
 	return i, err
 }
@@ -336,7 +341,7 @@ func (q *Queries) ListTenantMembers(ctx context.Context, tenantID uuid.UUID) ([]
 }
 
 const listTenantsForUser = `-- name: ListTenantsForUser :many
-SELECT t.id, t.name, t.slug, t.status, t.plan, t.created_at, t.updated_at, tm.role, tm.joined_at
+SELECT t.id, t.name, t.slug, t.status, t.plan, t.created_at, t.updated_at, t.metadata, tm.role, tm.joined_at
 FROM tenants t
 JOIN tenant_members tm ON t.id = tm.tenant_id
 WHERE tm.user_id = $1
@@ -351,6 +356,7 @@ type ListTenantsForUserRow struct {
 	Plan      string    `db:"plan" json:"plan"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	Metadata  []byte    `db:"metadata" json:"metadata"`
 	Role      string    `db:"role" json:"role"`
 	JoinedAt  time.Time `db:"joined_at" json:"joined_at"`
 }
@@ -372,6 +378,7 @@ func (q *Queries) ListTenantsForUser(ctx context.Context, userID uuid.UUID) ([]L
 			&i.Plan,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Metadata,
 			&i.Role,
 			&i.JoinedAt,
 		); err != nil {
@@ -402,21 +409,21 @@ func (q *Queries) RemoveTenantMember(ctx context.Context, arg RemoveTenantMember
 
 const updateTenant = `-- name: UpdateTenant :one
 UPDATE tenants
-SET name = $2,
-    slug = $3,
-    status = $4,
-    plan = $5,
+SET name = COALESCE($2, name),
+    slug = COALESCE($3, slug),
+    status = COALESCE($4, status),
+    plan = COALESCE($5, plan),
     updated_at = NOW()
 WHERE id = $1
-RETURNING id, name, slug, status, plan, created_at, updated_at
+RETURNING id, name, slug, status, plan, created_at, updated_at, metadata
 `
 
 type UpdateTenantParams struct {
 	ID     uuid.UUID `db:"id" json:"id"`
-	Name   string    `db:"name" json:"name"`
-	Slug   string    `db:"slug" json:"slug"`
-	Status string    `db:"status" json:"status"`
-	Plan   string    `db:"plan" json:"plan"`
+	Name   *string   `db:"name" json:"name"`
+	Slug   *string   `db:"slug" json:"slug"`
+	Status *string   `db:"status" json:"status"`
+	Plan   *string   `db:"plan" json:"plan"`
 }
 
 func (q *Queries) UpdateTenant(ctx context.Context, arg UpdateTenantParams) (Tenant, error) {
@@ -436,6 +443,7 @@ func (q *Queries) UpdateTenant(ctx context.Context, arg UpdateTenantParams) (Ten
 		&i.Plan,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Metadata,
 	)
 	return i, err
 }
@@ -465,12 +473,41 @@ func (q *Queries) UpdateTenantMemberRole(ctx context.Context, arg UpdateTenantMe
 	return i, err
 }
 
+const updateTenantMetadata = `-- name: UpdateTenantMetadata :one
+UPDATE tenants
+SET metadata = COALESCE($2, metadata),
+    updated_at = NOW()
+WHERE id = $1
+RETURNING id, name, slug, status, plan, created_at, updated_at, metadata
+`
+
+type UpdateTenantMetadataParams struct {
+	ID       uuid.UUID `db:"id" json:"id"`
+	Metadata []byte    `db:"metadata" json:"metadata"`
+}
+
+func (q *Queries) UpdateTenantMetadata(ctx context.Context, arg UpdateTenantMetadataParams) (Tenant, error) {
+	row := q.db.QueryRow(ctx, updateTenantMetadata, arg.ID, arg.Metadata)
+	var i Tenant
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Slug,
+		&i.Status,
+		&i.Plan,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Metadata,
+	)
+	return i, err
+}
+
 const updateUserActiveTenant = `-- name: UpdateUserActiveTenant :one
 UPDATE users
 SET tenant_id = $2,
     updated_at = NOW()
 WHERE id = $1
-RETURNING id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at
+RETURNING id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at, metadata_public, metadata_private
 `
 
 type UpdateUserActiveTenantParams struct {
@@ -494,6 +531,8 @@ func (q *Queries) UpdateUserActiveTenant(ctx context.Context, arg UpdateUserActi
 		&i.UpdatedAt,
 		&i.LastLoginAt,
 		&i.DeletedAt,
+		&i.MetadataPublic,
+		&i.MetadataPrivate,
 	)
 	return i, err
 }

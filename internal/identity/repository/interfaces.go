@@ -14,6 +14,7 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string, tenantID *uuid.UUID) (*domain.User, error)
 	Update(ctx context.Context, user *domain.User) error
+	UpdateMetadata(ctx context.Context, id uuid.UUID, metadataPublic, metadataPrivate map[string]interface{}) error
 	UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error
 	UpdateLastLogin(ctx context.Context, id uuid.UUID) error
 	SetEmailVerified(ctx context.Context, id uuid.UUID) error

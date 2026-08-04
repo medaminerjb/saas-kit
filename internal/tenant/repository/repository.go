@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -20,6 +21,7 @@ type TenantRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Tenant, error)
 	GetBySlug(ctx context.Context, slug string) (*domain.Tenant, error)
 	Update(ctx context.Context, tenant *domain.Tenant) error
+	UpdateMetadata(ctx context.Context, id uuid.UUID, metadata map[string]interface{}) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	ListForUser(ctx context.Context, userID uuid.UUID) ([]*domain.Tenant, []domain.MemberRole, error)
 
@@ -53,11 +55,20 @@ func NewTenantRepository(pool *pgxpool.Pool) TenantRepository {
 }
 
 func (r *pgTenantRepo) Create(ctx context.Context, t *domain.Tenant) error {
+	var metadataBytes []byte
+	var err error
+	if t.Metadata != nil {
+		metadataBytes, err = json.Marshal(t.Metadata)
+		if err != nil {
+			return err
+		}
+	}
 	res, err := r.queries.CreateTenant(ctx, sqlcgen.CreateTenantParams{
-		Name:   t.Name,
-		Slug:   t.Slug,
-		Status: string(t.Status),
-		Plan:   t.Plan,
+		Name:     t.Name,
+		Slug:     t.Slug,
+		Status:   string(t.Status),
+		Plan:     t.Plan,
+		Metadata: metadataBytes,
 	})
 	if err != nil {
 		return err
@@ -76,12 +87,19 @@ func (r *pgTenantRepo) GetByID(ctx context.Context, id uuid.UUID) (*domain.Tenan
 		}
 		return nil, err
 	}
+	var metadata map[string]interface{}
+	if res.Metadata != nil {
+		if err := json.Unmarshal(res.Metadata, &metadata); err != nil {
+			return nil, err
+		}
+	}
 	return &domain.Tenant{
 		ID:        res.ID,
 		Name:      res.Name,
 		Slug:      res.Slug,
 		Status:    domain.TenantStatus(res.Status),
 		Plan:      res.Plan,
+		Metadata:  metadata,
 		CreatedAt: res.CreatedAt,
 		UpdatedAt: res.UpdatedAt,
 	}, nil
@@ -95,12 +113,19 @@ func (r *pgTenantRepo) GetBySlug(ctx context.Context, slug string) (*domain.Tena
 		}
 		return nil, err
 	}
+	var metadata map[string]interface{}
+	if res.Metadata != nil {
+		if err := json.Unmarshal(res.Metadata, &metadata); err != nil {
+			return nil, err
+		}
+	}
 	return &domain.Tenant{
 		ID:        res.ID,
 		Name:      res.Name,
 		Slug:      res.Slug,
 		Status:    domain.TenantStatus(res.Status),
 		Plan:      res.Plan,
+		Metadata:  metadata,
 		CreatedAt: res.CreatedAt,
 		UpdatedAt: res.UpdatedAt,
 	}, nil
@@ -109,16 +134,28 @@ func (r *pgTenantRepo) GetBySlug(ctx context.Context, slug string) (*domain.Tena
 func (r *pgTenantRepo) Update(ctx context.Context, t *domain.Tenant) error {
 	res, err := r.queries.UpdateTenant(ctx, sqlcgen.UpdateTenantParams{
 		ID:     t.ID,
-		Name:   t.Name,
-		Slug:   t.Slug,
-		Status: string(t.Status),
-		Plan:   t.Plan,
+		Name:   &t.Name,
+		Slug:   &t.Slug,
+		Status: (*string)(&t.Status),
+		Plan:   &t.Plan,
 	})
 	if err != nil {
 		return err
 	}
 	t.UpdatedAt = res.UpdatedAt
 	return nil
+}
+
+func (r *pgTenantRepo) UpdateMetadata(ctx context.Context, id uuid.UUID, metadata map[string]interface{}) error {
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		return err
+	}
+	_, err = r.queries.UpdateTenantMetadata(ctx, sqlcgen.UpdateTenantMetadataParams{
+		ID:       id,
+		Metadata: metadataBytes,
+	})
+	return err
 }
 
 func (r *pgTenantRepo) Delete(ctx context.Context, id uuid.UUID) error {
@@ -134,12 +171,19 @@ func (r *pgTenantRepo) ListForUser(ctx context.Context, userID uuid.UUID) ([]*do
 	tenants := make([]*domain.Tenant, len(rows))
 	roles := make([]domain.MemberRole, len(rows))
 	for i, row := range rows {
+		var metadata map[string]interface{}
+		if row.Metadata != nil {
+			if err := json.Unmarshal(row.Metadata, &metadata); err != nil {
+				return nil, nil, err
+			}
+		}
 		tenants[i] = &domain.Tenant{
 			ID:        row.ID,
 			Name:      row.Name,
 			Slug:      row.Slug,
 			Status:    domain.TenantStatus(row.Status),
 			Plan:      row.Plan,
+			Metadata:  metadata,
 			CreatedAt: row.CreatedAt,
 			UpdatedAt: row.UpdatedAt,
 		}

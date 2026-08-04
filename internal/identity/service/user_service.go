@@ -43,6 +43,12 @@ type UpdateProfileInput struct {
 	AvatarURL *string
 }
 
+// UpdateMetadataInput holds the fields that can be updated on user metadata.
+type UpdateMetadataInput struct {
+	MetadataPublic  map[string]interface{}
+	MetadataPrivate map[string]interface{}
+}
+
 // UpdateProfile updates a user's profile information.
 func (s *UserService) UpdateProfile(ctx context.Context, id uuid.UUID, input UpdateProfileInput) (*domain.User, error) {
 	user, err := s.users.GetByID(ctx, id)
@@ -62,9 +68,36 @@ func (s *UserService) UpdateProfile(ctx context.Context, id uuid.UUID, input Upd
 	}
 
 	_ = s.publisher.Publish(ctx, events.Event{
-		Type:      "user.updated",
-		ActorID:   &id,
-		TargetID:  &id,
+		Type:     "user.updated",
+		ActorID:  &id,
+		TargetID: &id,
+	})
+
+	return user, nil
+}
+
+// UpdateMetadata updates a user's metadata.
+func (s *UserService) UpdateMetadata(ctx context.Context, id uuid.UUID, input UpdateMetadataInput) (*domain.User, error) {
+	user, err := s.users.GetByID(ctx, id)
+	if err != nil {
+		return nil, domain.ErrUserNotFound
+	}
+
+	if input.MetadataPublic != nil {
+		user.MetadataPublic = input.MetadataPublic
+	}
+	if input.MetadataPrivate != nil {
+		user.MetadataPrivate = input.MetadataPrivate
+	}
+
+	if err := s.users.UpdateMetadata(ctx, id, user.MetadataPublic, user.MetadataPrivate); err != nil {
+		return nil, fmt.Errorf("updating user metadata: %w", err)
+	}
+
+	_ = s.publisher.Publish(ctx, events.Event{
+		Type:     "user.metadata.updated",
+		ActorID:  &id,
+		TargetID: &id,
 	})
 
 	return user, nil

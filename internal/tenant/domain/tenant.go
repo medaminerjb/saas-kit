@@ -16,24 +16,25 @@ const (
 
 // Tenant represents an organization in the system.
 type Tenant struct {
-	ID        uuid.UUID    `json:"id"`
-	Name      string       `json:"name"`
-	Slug      string       `json:"slug"`
-	Status    TenantStatus `json:"status"`
-	Plan      string       `json:"plan"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
+	ID        uuid.UUID              `json:"id"`
+	Name      string                 `json:"name"`
+	Slug      string                 `json:"slug"`
+	Status    TenantStatus           `json:"status"`
+	Plan      string                 `json:"plan"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
 }
 
 // MemberRole represents the role of a user within a tenant.
 type MemberRole string
 
 const (
-	RoleOwner  MemberRole = "owner"
-	RoleAdmin  MemberRole = "admin"
+	RoleOwner   MemberRole = "owner"
+	RoleAdmin   MemberRole = "admin"
 	RoleManager MemberRole = "manager"
-	RoleMember MemberRole = "member"
-	RoleViewer MemberRole = "viewer"
+	RoleMember  MemberRole = "member"
+	RoleViewer  MemberRole = "viewer"
 )
 
 // Member represents user membership in a tenant.
