@@ -393,6 +393,7 @@ type Tenant struct {
 	Plan      string    `db:"plan" json:"plan"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	Metadata  []byte    `db:"metadata" json:"metadata"`
 }
 
 type TenantFeatureFlag struct {
@@ -430,16 +431,18 @@ type TrustedDevice struct {
 }
 
 type User struct {
-	ID            uuid.UUID          `db:"id" json:"id"`
-	TenantID      pgtype.UUID        `db:"tenant_id" json:"tenant_id"`
-	Email         string             `db:"email" json:"email"`
-	Name          string             `db:"name" json:"name"`
-	PasswordHash  *string            `db:"password_hash" json:"password_hash"`
-	Status        UserStatus         `db:"status" json:"status"`
-	EmailVerified bool               `db:"email_verified" json:"email_verified"`
-	AvatarUrl     *string            `db:"avatar_url" json:"avatar_url"`
-	CreatedAt     time.Time          `db:"created_at" json:"created_at"`
-	UpdatedAt     time.Time          `db:"updated_at" json:"updated_at"`
-	LastLoginAt   pgtype.Timestamptz `db:"last_login_at" json:"last_login_at"`
-	DeletedAt     pgtype.Timestamptz `db:"deleted_at" json:"deleted_at"`
+	ID              uuid.UUID          `db:"id" json:"id"`
+	TenantID        pgtype.UUID        `db:"tenant_id" json:"tenant_id"`
+	Email           string             `db:"email" json:"email"`
+	Name            string             `db:"name" json:"name"`
+	PasswordHash    *string            `db:"password_hash" json:"password_hash"`
+	Status          UserStatus         `db:"status" json:"status"`
+	EmailVerified   bool               `db:"email_verified" json:"email_verified"`
+	AvatarUrl       *string            `db:"avatar_url" json:"avatar_url"`
+	CreatedAt       time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time          `db:"updated_at" json:"updated_at"`
+	LastLoginAt     pgtype.Timestamptz `db:"last_login_at" json:"last_login_at"`
+	DeletedAt       pgtype.Timestamptz `db:"deleted_at" json:"deleted_at"`
+	MetadataPublic  []byte             `db:"metadata_public" json:"metadata_public"`
+	MetadataPrivate []byte             `db:"metadata_private" json:"metadata_private"`
 }

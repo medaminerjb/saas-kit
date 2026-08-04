@@ -26,19 +26,21 @@ func (q *Queries) CountUsers(ctx context.Context, tenantID pgtype.UUID) (int64, 
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, name, password_hash, status, email_verified, avatar_url, tenant_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at
+INSERT INTO users (email, name, password_hash, status, email_verified, avatar_url, tenant_id, metadata_public, metadata_private)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at, metadata_public, metadata_private
 `
 
 type CreateUserParams struct {
-	Email         string      `db:"email" json:"email"`
-	Name          string      `db:"name" json:"name"`
-	PasswordHash  *string     `db:"password_hash" json:"password_hash"`
-	Status        UserStatus  `db:"status" json:"status"`
-	EmailVerified bool        `db:"email_verified" json:"email_verified"`
-	AvatarUrl     *string     `db:"avatar_url" json:"avatar_url"`
-	TenantID      pgtype.UUID `db:"tenant_id" json:"tenant_id"`
+	Email           string      `db:"email" json:"email"`
+	Name            string      `db:"name" json:"name"`
+	PasswordHash    *string     `db:"password_hash" json:"password_hash"`
+	Status          UserStatus  `db:"status" json:"status"`
+	EmailVerified   bool        `db:"email_verified" json:"email_verified"`
+	AvatarUrl       *string     `db:"avatar_url" json:"avatar_url"`
+	TenantID        pgtype.UUID `db:"tenant_id" json:"tenant_id"`
+	MetadataPublic  []byte      `db:"metadata_public" json:"metadata_public"`
+	MetadataPrivate []byte      `db:"metadata_private" json:"metadata_private"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -50,6 +52,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.EmailVerified,
 		arg.AvatarUrl,
 		arg.TenantID,
+		arg.MetadataPublic,
+		arg.MetadataPrivate,
 	)
 	var i User
 	err := row.Scan(
@@ -65,12 +69,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.LastLoginAt,
 		&i.DeletedAt,
+		&i.MetadataPublic,
+		&i.MetadataPrivate,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at FROM users
+SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at, metadata_public, metadata_private FROM users
 WHERE email = $1
   AND deleted_at IS NULL
   AND (tenant_id = $2 OR (tenant_id IS NULL AND $2::uuid IS NULL))
@@ -97,12 +103,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) 
 		&i.UpdatedAt,
 		&i.LastLoginAt,
 		&i.DeletedAt,
+		&i.MetadataPublic,
+		&i.MetadataPrivate,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL
+SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at, metadata_public, metadata_private FROM users WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -121,12 +129,14 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.UpdatedAt,
 		&i.LastLoginAt,
 		&i.DeletedAt,
+		&i.MetadataPublic,
+		&i.MetadataPrivate,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at FROM users
+SELECT id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at, metadata_public, metadata_private FROM users
 WHERE deleted_at IS NULL
   AND (tenant_id = $3 OR $3::uuid IS NULL)
 ORDER BY created_at DESC
@@ -161,6 +171,8 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.UpdatedAt,
 			&i.LastLoginAt,
 			&i.DeletedAt,
+			&i.MetadataPublic,
+			&i.MetadataPrivate,
 		); err != nil {
 			return nil, err
 		}
@@ -203,7 +215,7 @@ SET name = COALESCE($2, name),
     email_verified = COALESCE($6, email_verified),
     updated_at = NOW()
 WHERE id = $1 AND deleted_at IS NULL
-RETURNING id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at
+RETURNING id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at, metadata_public, metadata_private
 `
 
 type UpdateUserParams struct {
@@ -238,6 +250,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.LastLoginAt,
 		&i.DeletedAt,
+		&i.MetadataPublic,
+		&i.MetadataPrivate,
 	)
 	return i, err
 }
@@ -251,6 +265,43 @@ WHERE id = $1
 func (q *Queries) UpdateUserLastLogin(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, updateUserLastLogin, id)
 	return err
+}
+
+const updateUserMetadata = `-- name: UpdateUserMetadata :one
+UPDATE users
+SET metadata_public = COALESCE($2, metadata_public),
+    metadata_private = COALESCE($3, metadata_private),
+    updated_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL
+RETURNING id, tenant_id, email, name, password_hash, status, email_verified, avatar_url, created_at, updated_at, last_login_at, deleted_at, metadata_public, metadata_private
+`
+
+type UpdateUserMetadataParams struct {
+	ID              uuid.UUID `db:"id" json:"id"`
+	MetadataPublic  []byte    `db:"metadata_public" json:"metadata_public"`
+	MetadataPrivate []byte    `db:"metadata_private" json:"metadata_private"`
+}
+
+func (q *Queries) UpdateUserMetadata(ctx context.Context, arg UpdateUserMetadataParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserMetadata, arg.ID, arg.MetadataPublic, arg.MetadataPrivate)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.Email,
+		&i.Name,
+		&i.PasswordHash,
+		&i.Status,
+		&i.EmailVerified,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastLoginAt,
+		&i.DeletedAt,
+		&i.MetadataPublic,
+		&i.MetadataPrivate,
+	)
+	return i, err
 }
 
 const updateUserPassword = `-- name: UpdateUserPassword :exec
