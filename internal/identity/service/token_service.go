@@ -18,9 +18,12 @@ import (
 // JWTClaims are the claims included in SaaSKit access tokens.
 type JWTClaims struct {
 	jwt.RegisteredClaims
-	SessionID string  `json:"sid,omitempty"`
-	TenantID  *string `json:"tenant,omitempty"`
-	Scope     string  `json:"scope,omitempty"`
+	SessionID   string   `json:"sid,omitempty"`
+	TenantID    *string  `json:"tenant,omitempty"`
+	TenantRole  *string  `json:"tenant_role,omitempty"`
+	Permissions []string `json:"permissions,omitempty"`
+	MFAVerified bool     `json:"mfa_verified,omitempty"`
+	Scope       string   `json:"scope,omitempty"`
 }
 
 // TokenService handles JWT access token generation and validation.
@@ -58,7 +61,8 @@ func NewTokenService(cfg TokenServiceConfig, logger *slog.Logger) *TokenService 
 }
 
 // GenerateAccessToken creates a signed JWT access token for the given user and session.
-func (s *TokenService) GenerateAccessToken(_ context.Context, user *domain.User, sessionID uuid.UUID) (string, error) {
+// Optional tenantRole and permissions can be provided for RBAC.
+func (s *TokenService) GenerateAccessToken(_ context.Context, user *domain.User, sessionID uuid.UUID, tenantRole *string, permissions []string, mfaVerified bool) (string, error) {
 	now := time.Now()
 	jti := uuid.New().String()
 
@@ -71,8 +75,11 @@ func (s *TokenService) GenerateAccessToken(_ context.Context, user *domain.User,
 			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessTTL)),
 			ID:        jti,
 		},
-		SessionID: sessionID.String(),
-		Scope:     "openid profile email",
+		SessionID:   sessionID.String(),
+		TenantRole:  tenantRole,
+		Permissions: permissions,
+		MFAVerified: mfaVerified,
+		Scope:       "openid profile email",
 	}
 
 	if user.TenantID != nil {

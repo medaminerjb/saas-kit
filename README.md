@@ -11,13 +11,16 @@ SaaSKit provides the foundational infrastructure every multi-tenant SaaS applica
 - **Email/password authentication** with Argon2id password hashing
 - **JWT access tokens** with asymmetric signing (RS256, ES256, EdDSA)
 - **Refresh token rotation** with HMAC-hashed storage (database leaks don't compromise tokens)
+- **Grace window rotation** — 10-second grace window for concurrent refresh requests
 - **OIDC Provider** — SaaSKit acts as a full OpenID Connect Provider
 - **Social login** — Google, GitHub (extensible to any OAuth2/OIDC provider)
-- **Multi-tenant ready** — `tenant_id` columns reserved across all tables
+- **Multi-tenant ready** — Multi-tenancy support with tenant creation, member roles (Owner, Admin, Manager, Member, Viewer), and secure invitation flows
+- **RBAC** — Role-based access control with granular permissions (tenant read/update, members invite/remove)
+- **MFA** — TOTP (Time-based One-Time Password) with envelope encryption and recovery codes
 - **Audit logging** — append-only identity event audit trail
 - **Event-driven architecture** — publisher interface for future Kafka/NATS/Redis integration
 - **Background jobs** — automatic cleanup of expired sessions and tokens
-- **Envelope encryption** — AES-256-GCM for stored secrets (OAuth client secrets, etc.)
+- **Envelope encryption** — AES-256-GCM for stored secrets (OAuth client secrets, MFA secrets, etc.)
 - **Generic token system** — password resets, email verification, invites, magic links — one table
 
 ## Quick Start
@@ -60,6 +63,20 @@ make run-direct
 | `PATCH` | `/api/v1/users/me` | Update profile |
 | `GET` | `/api/v1/users/me/sessions` | List sessions |
 | `DELETE` | `/api/v1/users/me/sessions/{id}` | Revoke session |
+
+### Multi-Tenancy (`/api/v1/`, requires auth)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/tenants` | Create organization |
+| `GET` | `/api/v1/tenants` | List user's organizations |
+| `POST` | `/api/v1/tenants/switch` | Switch active organization |
+| `POST` | `/api/v1/tenants/invitations/accept` | Accept organization invitation |
+| `GET` | `/api/v1/tenants/{id}` | Get organization details (requires membership) |
+| `PATCH` | `/api/v1/tenants/{id}` | Update organization settings (requires admin/owner) |
+| `GET` | `/api/v1/tenants/{id}/members` | List organization members (requires membership) |
+| `POST` | `/api/v1/tenants/{id}/members` | Invite new member (requires admin/owner) |
+| `DELETE` | `/api/v1/tenants/{id}/members/{uid}` | Remove member / leave organization (requires admin/owner or self) |
 
 ### OIDC Provider (`/oidc/`)
 
@@ -111,9 +128,9 @@ internal/
     provider/          → OpenID Connect Provider (zitadel/oidc)
     relyingparty/      → Social login (Google, GitHub)
   audit/               → Audit logging
-  tenant/              → [Reserved] Multi-tenancy
+  tenant/              → Multi-tenancy domain models, repositories, and services
   authorization/       → [Reserved] RBAC + policies
-  organizations/       → [Reserved] Organization management
+  organizations/       → [Reserved] Organization management (deprecated in favor of tenant)
 ```
 
 ## Configuration
@@ -176,7 +193,7 @@ See the [full roadmap](docs/roadmap.md) for detailed plans through v3.0.
 
 1. ✅ **Foundation** — scaffold, DB, config, crypto, events, jobs
 2. ✅ **Identity** — auth, sessions, OIDC provider, social login, login UI
-3. ⬜ **Multi-Tenancy** — organizations, tenant isolation
+3. ✅ **Multi-Tenancy** — organizations, tenant isolation
 4. ⬜ **Authorization** — RBAC, permissions middleware
 5. ⬜ **Enterprise** — SAML, SCIM, MFA, API keys
 

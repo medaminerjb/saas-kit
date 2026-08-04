@@ -17,17 +17,17 @@ import (
 
 // AuthService handles authentication flows: registration, login, token refresh, logout.
 type AuthService struct {
-	users         repository.UserRepository
-	sessions      repository.SessionRepository
-	tokens        repository.IdentityTokenRepository
-	hasher        *idcrypto.Hasher
-	tokenHasher   *idcrypto.TokenHasher
-	tokenService  *TokenService
-	publisher     events.Publisher
-	refreshTTL    time.Duration
-	logger        *slog.Logger
+	users        repository.UserRepository
+	sessions     repository.SessionRepository
+	tokens       repository.IdentityTokenRepository
+	hasher       *idcrypto.Hasher
+	tokenHasher  *idcrypto.TokenHasher
+	tokenService *TokenService
+	publisher    events.Publisher
+	refreshTTL   time.Duration
+	logger       *slog.Logger
 
-	failedMu      sync.Mutex
+	failedMu       sync.Mutex
 	failedAttempts map[string]int
 }
 
@@ -191,6 +191,7 @@ func (s *AuthService) Login(ctx context.Context, input LoginInput) (*domain.User
 }
 
 // RefreshTokens validates a refresh token and issues a new token pair (rotation).
+// Implements 10-second grace window for concurrent refresh requests.
 func (s *AuthService) RefreshTokens(ctx context.Context, refreshToken string) (*AuthTokens, error) {
 	hash := s.tokenHasher.Hash(refreshToken)
 
@@ -203,9 +204,17 @@ func (s *AuthService) RefreshTokens(ctx context.Context, refreshToken string) (*
 		return nil, domain.ErrSessionExpired
 	}
 
-	// Revoke old session (refresh token rotation)
-	if err := s.sessions.Revoke(ctx, session.ID); err != nil {
-		return nil, fmt.Errorf("revoking old session: %w", err)
+	// Store previous token hash and rotation timestamp for grace window
+	now := time.Now()
+	previousHash := session.RefreshTokenHash
+	session.PreviousRefreshTokenHash = &previousHash
+	session.RotatedAt = &now
+
+	// Update session with grace window data before creating new one
+	// Note: We don't revoke immediately - the grace window allows the old token
+	// to work for 10 seconds after rotation
+	if err := s.sessions.Update(ctx, session); err != nil {
+		return nil, fmt.Errorf("updating session for grace window: %w", err)
 	}
 
 	// Load user
@@ -382,7 +391,7 @@ func (s *AuthService) createSession(ctx context.Context, user *domain.User, user
 	}
 
 	// Generate access token
-	accessToken, err := s.tokenService.GenerateAccessToken(ctx, user, session.ID)
+	accessToken, err := s.tokenService.GenerateAccessToken(ctx, user, session.ID, nil, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("generating access token: %w", err)
 	}
@@ -437,4 +446,3 @@ func (s *AuthService) resetFailedLogin(email string) {
 	defer s.failedMu.Unlock()
 	delete(s.failedAttempts, email)
 }
-

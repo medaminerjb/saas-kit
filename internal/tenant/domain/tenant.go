@@ -31,7 +31,9 @@ type MemberRole string
 const (
 	RoleOwner  MemberRole = "owner"
 	RoleAdmin  MemberRole = "admin"
+	RoleManager MemberRole = "manager"
 	RoleMember MemberRole = "member"
+	RoleViewer MemberRole = "viewer"
 )
 
 // Member represents user membership in a tenant.

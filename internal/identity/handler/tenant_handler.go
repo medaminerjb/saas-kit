@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"github.com/medaminerjb/saas-kit/internal/authorization"
 	"github.com/medaminerjb/saas-kit/internal/tenant/domain"
 	tenantservice "github.com/medaminerjb/saas-kit/internal/tenant/service"
 )
@@ -44,9 +45,9 @@ func (h *TenantHandler) Routes(r chi.Router) {
 	r.Route("/tenants/{tenantID}", func(r chi.Router) {
 		r.Use(h.RequireTenantMembership)
 		r.Get("/", h.Get)
-		r.Patch("/", h.Update)
+		r.With(authorization.RequirePermission(authorization.PermTenantUpdate, GetTenantRole)).Patch("/", h.Update)
 		r.Get("/members", h.ListMembers)
-		r.Post("/members", h.InviteMember)
+		r.With(authorization.RequirePermission(authorization.PermMembersInvite, GetTenantRole)).Post("/members", h.InviteMember)
 		r.Delete("/members/{userID}", h.RemoveMember)
 	})
 }
@@ -215,15 +216,8 @@ type updateTenantRequest struct {
 
 func (h *TenantHandler) Update(w http.ResponseWriter, r *http.Request) {
 	tenantID, ok := GetTenantID(r.Context())
-	role, ok2 := GetTenantRole(r.Context())
-	if !ok || !ok2 {
+	if !ok {
 		writeError(w, http.StatusNotFound, "tenant context missing")
-		return
-	}
-
-	// Enforce Owner or Admin role for editing organization settings
-	if role != domain.RoleOwner && role != domain.RoleAdmin {
-		writeError(w, http.StatusForbidden, "forbidden: insufficient permissions")
 		return
 	}
 
@@ -265,15 +259,8 @@ type inviteMemberRequest struct {
 
 func (h *TenantHandler) InviteMember(w http.ResponseWriter, r *http.Request) {
 	tenantID, ok := GetTenantID(r.Context())
-	role, ok2 := GetTenantRole(r.Context())
-	if !ok || !ok2 {
+	if !ok {
 		writeError(w, http.StatusNotFound, "tenant context missing")
-		return
-	}
-
-	// Enforce Owner or Admin role for invitations
-	if role != domain.RoleOwner && role != domain.RoleAdmin {
-		writeError(w, http.StatusForbidden, "forbidden: insufficient permissions")
 		return
 	}
 
@@ -314,8 +301,7 @@ func (h *TenantHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Enforce permissions: Owner/Admin can remove members. Owner cannot be removed.
-	// Users can also remove themselves (leaving the organization).
+	// Users can remove themselves (leaving the organization) regardless of role
 	claims := GetClaims(r.Context())
 	if claims == nil {
 		writeError(w, http.StatusUnauthorized, "unauthorized")
@@ -324,9 +310,7 @@ func (h *TenantHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	currentUserID, _ := uuid.Parse(claims.Subject)
 
 	isSelf := currentUserID == targetUserID
-	isAdminOrOwner := role == domain.RoleOwner || role == domain.RoleAdmin
-
-	if !isSelf && !isAdminOrOwner {
+	if !isSelf && !authorization.HasPermission(role, authorization.PermMembersRemove) {
 		writeError(w, http.StatusForbidden, "forbidden: insufficient permissions")
 		return
 	}
@@ -401,6 +385,10 @@ func GetTenantID(ctx context.Context) (uuid.UUID, bool) {
 
 // GetTenantRole extracts the member role from the context.
 func GetTenantRole(ctx context.Context) (domain.MemberRole, bool) {
-	val, ok := ctx.Value(tenantRoleKey).(domain.MemberRole)
-	return val, ok
+	val := ctx.Value(tenantRoleKey)
+	if val == nil {
+		return "", false
+	}
+	role, ok := val.(domain.MemberRole)
+	return role, ok
 }

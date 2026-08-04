@@ -356,8 +356,170 @@ func TestIntegration_MultiTenancy_E2E(t *testing.T) {
 		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusForbidden {
-			t.Errorf("expected 403 Forbidden, got %d", resp.StatusCode)
+			t.Errorf("expected 403 Forbidden after removal, got %d", resp.StatusCode)
+		}
+	})
+
+	// 11. Test RBAC with Manager role (can invite but not update tenant settings)
+	t.Run("RBAC Manager Role", func(t *testing.T) {
+		// Re-invite User B as manager
+		body, _ := json.Marshal(map[string]string{
+			"email": "userB@saaskit.test",
+			"role":  "manager",
+		})
+		req, _ := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/tenants/%s/members", server.URL, tenantID), bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusCreated {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 201 Created, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		var invite map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&invite); err != nil {
+			t.Fatalf("failed to decode invite response: %v", err)
+		}
+
+		token, ok := invite["token"].(string)
+		if !ok || token == "" {
+			t.Fatalf("expected invite token, got response: %#v", invite)
+		}
+
+		inviteToken = token
+		// Accept invitation
+		body, _ = json.Marshal(map[string]string{"token": inviteToken})
+		req, _ = http.NewRequest("POST", server.URL+"/api/v1/tenants/invitations/accept", bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userBToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		// Manager should be able to invite new members
+		body, _ = json.Marshal(map[string]string{
+			"email": "userC@saaskit.test",
+			"role":  "member",
+		})
+		req, _ = http.NewRequest("POST", fmt.Sprintf("%s/api/v1/tenants/%s/members", server.URL, tenantID), bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userBToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusCreated {
+			t.Errorf("Manager should be able to invite members, got %d", resp.StatusCode)
+		}
+
+		// Manager should NOT be able to update tenant settings
+		body, _ = json.Marshal(map[string]string{"name": "Updated Name"})
+		req, _ = http.NewRequest("PATCH", fmt.Sprintf("%s/api/v1/tenants/%s", server.URL, tenantID), bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userBToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusForbidden {
+			t.Errorf("Manager should not be able to update tenant settings, got %d", resp.StatusCode)
+		}
+	})
+
+	// 12. Test RBAC with Viewer role (read-only access)
+	t.Run("RBAC Viewer Role", func(t *testing.T) {
+		// Invite User B as viewer
+		body, _ := json.Marshal(map[string]string{
+			"email": "userB@saaskit.test",
+			"role":  "viewer",
+		})
+		req, _ := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/tenants/%s/members", server.URL, tenantID), bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userAToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusCreated {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 201 Created, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		var invite map[string]any
+		_ = json.NewDecoder(resp.Body).Decode(&invite)
+		inviteToken = invite["token"].(string)
+
+		// Accept invitation
+		body, _ = json.Marshal(map[string]string{"token": inviteToken})
+		req, _ = http.NewRequest("POST", server.URL+"/api/v1/tenants/invitations/accept", bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userBToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("expected 200 OK, got %d. Body: %s", resp.StatusCode, b)
+		}
+
+		// Viewer should be able to read tenant
+		req, _ = http.NewRequest("GET", fmt.Sprintf("%s/api/v1/tenants/%s", server.URL, tenantID), nil)
+		req.Header.Set("Authorization", "Bearer "+userBToken)
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Viewer should be able to read tenant, got %d", resp.StatusCode)
+		}
+
+		// Viewer should NOT be able to invite members
+		body, _ = json.Marshal(map[string]string{
+			"email": "userD@saaskit.test",
+			"role":  "member",
+		})
+		req, _ = http.NewRequest("POST", fmt.Sprintf("%s/api/v1/tenants/%s/members", server.URL, tenantID), bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+userBToken)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err = client.Do(req)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		if resp.StatusCode != http.StatusForbidden {
+			t.Errorf("Viewer should not be able to invite members, got %d", resp.StatusCode)
 		}
 	})
 }
-

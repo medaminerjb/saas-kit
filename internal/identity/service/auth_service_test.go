@@ -16,6 +16,7 @@ import (
 type mockSessionRepository struct {
 	createFunc                func(ctx context.Context, session *domain.Session) error
 	getByRefreshTokenHashFunc func(ctx context.Context, hash string) (*domain.Session, error)
+	updateFunc                func(ctx context.Context, session *domain.Session) error
 	revokeFunc                func(ctx context.Context, id uuid.UUID) error
 }
 
@@ -35,6 +36,13 @@ func (m *mockSessionRepository) GetByRefreshTokenHash(ctx context.Context, hash 
 
 func (m *mockSessionRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Session, error) {
 	return nil, nil
+}
+
+func (m *mockSessionRepository) Update(ctx context.Context, session *domain.Session) error {
+	if m.updateFunc != nil {
+		return m.updateFunc(ctx, session)
+	}
+	return nil
 }
 
 func (m *mockSessionRepository) Revoke(ctx context.Context, id uuid.UUID) error {
@@ -256,46 +264,46 @@ func TestAuthService_RefreshTokens(t *testing.T) {
 		KeyLength:   32,
 	})
 
-	tokenHasher := crypto.NewTokenHasher("test-server-secret")
+	tokenHasher := crypto.NewTokenHasher("ci-test-secret-00000000000000000000000000000000000000000000")
 
-	uID := uuid.New()
-	user := &domain.User{
-		ID:            uID,
-		Email:         "test@example.com",
-		Status:        domain.UserStatusActive,
-		EmailVerified: true,
-	}
-
+	userID := uuid.New()
+	hash := "$argon2id$v=19$m=65536,t=3,p=2$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG"
 	mockRepo := &mockUserRepository{
 		getByIDFunc: func(ctx context.Context, id uuid.UUID) (*domain.User, error) {
-			if id == uID {
-				return user, nil
-			}
-			return nil, errors.New("not found")
+			return &domain.User{
+				ID:           userID,
+				Email:        "test@example.com",
+				PasswordHash: &hash,
+				Status:       domain.UserStatusActive,
+			}, nil
 		},
 	}
 
-	mockSessions := &mockSessionRepository{}
-	session := &domain.Session{
-		ID:               uuid.New(),
-		UserID:           uID,
-		RefreshTokenHash: tokenHasher.Hash("valid-refresh-token"),
-		ExpiresAt:        time.Now().Add(24 * time.Hour),
-	}
-
-	mockSessions.getByRefreshTokenHashFunc = func(ctx context.Context, hash string) (*domain.Session, error) {
-		if hash == session.RefreshTokenHash {
-			return session, nil
-		}
-		return nil, errors.New("not found")
-	}
-
-	var oldSessionRevoked bool
-	mockSessions.revokeFunc = func(ctx context.Context, id uuid.UUID) error {
-		if id == session.ID {
-			oldSessionRevoked = true
-		}
-		return nil
+	sessionID := uuid.New()
+	sessionUpdated := false
+	var previousHash *string
+	var rotatedAt *time.Time
+	mockSessions := &mockSessionRepository{
+		getByRefreshTokenHashFunc: func(ctx context.Context, hash string) (*domain.Session, error) {
+			return &domain.Session{
+				ID:               sessionID,
+				UserID:           userID,
+				RefreshTokenHash: hash,
+				ExpiresAt:        time.Now().Add(24 * time.Hour),
+				CreatedAt:        time.Now(),
+			}, nil
+		},
+		updateFunc: func(ctx context.Context, session *domain.Session) error {
+			if session.ID == sessionID {
+				sessionUpdated = true
+				previousHash = session.PreviousRefreshTokenHash
+				rotatedAt = session.RotatedAt
+			}
+			return nil
+		},
+		createFunc: func(ctx context.Context, session *domain.Session) error {
+			return nil
+		},
 	}
 
 	mockTokens := &mockIdentityTokenRepository{}
@@ -317,12 +325,19 @@ func TestAuthService_RefreshTokens(t *testing.T) {
 		t.Fatalf("expected no error on refresh, got %v", err)
 	}
 
-	if !oldSessionRevoked {
-		t.Error("expected old session to be revoked during refresh token rotation")
+	if !sessionUpdated {
+		t.Error("expected session to be updated with grace window data during refresh token rotation")
+	}
+
+	if previousHash == nil {
+		t.Error("expected previous refresh token hash to be set")
+	}
+
+	if rotatedAt == nil {
+		t.Error("expected rotated_at timestamp to be set")
 	}
 
 	if tokens.AccessToken == "" || tokens.RefreshToken == "" {
 		t.Error("expected new tokens to be generated")
 	}
 }
-
