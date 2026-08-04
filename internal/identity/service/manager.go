@@ -66,3 +66,8 @@ func (m *IdentityManager) GetCurrentUser(ctx context.Context, userID uuid.UUID) 
 func (m *IdentityManager) UpdateProfile(ctx context.Context, userID uuid.UUID, input UpdateProfileInput) (*domain.User, error) {
 	return m.Users.UpdateProfile(ctx, userID, input)
 }
+
+// UpdateMetadata updates the authenticated user's metadata.
+func (m *IdentityManager) UpdateUserMetadata(ctx context.Context, userID uuid.UUID, input UpdateMetadataInput) (*domain.User, error) {
+	return m.Users.UpdateMetadata(ctx, userID, input)
+}
