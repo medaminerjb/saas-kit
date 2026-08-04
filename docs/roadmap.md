@@ -43,16 +43,21 @@ The architecture treats developer interfaces (SDKs, CLI, Admin Console) as first
 | **`internal`** | **Phase 0** | Foundation | ✅ Completed | Go scaffold, schema, `koanf`, envelope encryption, event bus |
 | **`v0.1.0`** | **Phase 1** | Identity | ✅ Completed | Argon2id, OIDC Provider (`zitadel/oidc`), social OAuth2, sessions |
 | **`v0.2.0`** | **Phase 2** | Multi-Tenancy | ✅ Completed | Organizations, member invite flows, DB isolation prep, CLI v0.1 |
-| **`v0.3.0`** | **Phase 3** | Authorization & MFA | 🟢 **OPEN (Next)** | Tenant-scoped RBAC, TOTP, recovery codes, token grace rotation |
-| **`v0.4.0`** | **Phase 4** | Metadata & Extensible Identity | 🟡 **OPEN** |  JSONB metadata, schema validation, GIN indexes, metadata events |
-| **`v1.0.0`** | **Phase 5** | SaaSKit Core GA | 🟡 **OPEN** | Tenant API Keys, Public Event Schema, Admin Console, SDKs, KMS |
-| **`v1.2.0`** | **Phase 6** | Integration Platform | 🟡 **OPEN** | Outbound Webhook Engine, OAuth App Provider, Email Abstraction |
-| **`v1.5.0`** | **Phase 7** | Enterprise Federation | 🟡 **OPEN** | SAML 2.0, Home Realm Discovery, SCIM 2.0, LDAP Directory Sync |
-| **`v1.7.0`** | **Phase 8** | SaaS Operations & Billing | 🟡 **OPEN** | Stripe adapter, feature flags engine, usage metering aggregators |
-| **`v2.0.0`** | **Phase 9** | Advanced Isolation & ReBAC | 🟡 **OPEN** | PostgreSQL RLS, OpenFGA Connector, Passkeys (WebAuthn) |
-| **`v2.2.0`** | **Phase 10** | Infrastructure Maturity | 🟡 **OPEN** | Active-Active HA, multi-region routing, PgBouncer optimization |
-| **`v2.5.0`** | **Phase 11** | Compliance & Residency | 🟡 **OPEN** | GDPR data export/erasure, SOC2 evidence, data residency pinning |
-| **`v3.0.0`** | **Phase 12** | Ecosystem & Starter Kits | 🟡 **OPEN** | Go Plugin SDK, Terraform Provider, `saaskit create` starter templates |
+| **`v0.3.0`** | **Phase 3** | Authorization & MFA | ✅ Completed | Tenant-scoped RBAC, TOTP, recovery codes, token grace rotation |
+| **`v0.4.0`** | **Phase 4** | Metadata & Extensible Identity | ✅ Completed | JSONB metadata, schema validation, GIN indexes, metadata events |
+| **`v0.5.0`** | **Phase 5** | API Keys & Event Schema | 🟢 **OPEN (Next)** | Tenant API Keys, public event model, webhook foundation |
+| **`v0.6.0`** | **Phase 6** | SDKs & Developer Tooling | 🟡 **OPEN** | Go SDK, JavaScript SDK, CLI enhancements |
+| **`v0.7.0`** | **Phase 7** | Admin Console v0.1 | 🟡 **OPEN** | Web UI for users, tenants, keys, audit logs |
+| **`v0.8.0`** | **Phase 8** | KMS & Security Hardening | 🟡 **OPEN** | Cloud KMS adapters, key rotation, security fixes |
+| **`v0.9.0`** | **Phase 9** | OpenID Certification Prep | 🟡 **OPEN** | OIDC conformance tests, compliance fixes, documentation |
+| **`v1.0.0`** | **Phase 10** | OpenID Certified GA | 🟡 **OPEN** | OpenID Foundation certification, production-ready |
+| **`v1.2.0`** | **Phase 11** | Integration Platform | 🟡 **OPEN** | Outbound Webhook Engine, OAuth App Provider, Email Abstraction |
+| **`v1.5.0`** | **Phase 12** | Enterprise Federation | 🟡 **OPEN** | SAML 2.0, Home Realm Discovery, SCIM 2.0, LDAP Directory Sync |
+| **`v1.7.0`** | **Phase 13** | SaaS Operations & Billing | 🟡 **OPEN** | Stripe adapter, feature flags engine, usage metering aggregators |
+| **`v2.0.0`** | **Phase 14** | Advanced Isolation & ReBAC | 🟡 **OPEN** | PostgreSQL RLS, OpenFGA Connector, Passkeys (WebAuthn) |
+| **`v2.2.0`** | **Phase 15** | Infrastructure Maturity | 🟡 **OPEN** | Active-Active HA, multi-region routing, PgBouncer optimization |
+| **`v2.5.0`** | **Phase 16** | Compliance & Residency | 🟡 **OPEN** | GDPR data export/erasure, SOC2 evidence, data residency pinning |
+| **`v3.0.0`** | **Phase 17** | Ecosystem & Starter Kits | 🟡 **OPEN** | Go Plugin SDK, Terraform Provider, `saaskit create` starter templates |
 
 ---
 
@@ -121,42 +126,90 @@ The architecture treats developer interfaces (SDKs, CLI, Admin Console) as first
 
 ---
 
-### Phase 4 — Metadata & Extensible Identity 🟢
+### Phase 4 — Metadata & Extensible Identity ✅
 
-* **Status:** OPEN (Immediate Priority) · **Release:** `v0.4.0`
+* **Status:** Completed · **Release:** `v0.4.0`
 
-* [ ] **User Metadata Storage** — `metadata_public` (client-accessible) and `metadata_private` (backend-only) JSONB columns on `users`
-* [ ] **Organization Metadata Storage** — `metadata` JSONB column on `tenants` for billing IDs, locales, and custom configs
-* [ ] **GIN Indexing & Validations** — JSON schema validation and size cap enforcement (32KB max per payload)
-* [ ] **Metadata RBAC Rules** — Permission checks securing read/write metadata actions across tenant boundaries
-* [ ] **Metadata CRUD API Endpoints** — Dedicated REST endpoints (`/api/v1/users/{id}/metadata`, `/api/v1/tenants/{id}/metadata`)
-* [ ] **Metadata Event Stream** — Publish `user.metadata.updated` and `organization.metadata.updated` system events
+* [x] **User Metadata Storage** — `metadata_public` (client-accessible) and `metadata_private` (backend-only) JSONB columns on `users`
+* [x] **Organization Metadata Storage** — `metadata` JSONB column on `tenants` for billing IDs, locales, and custom configs
+* [x] **GIN Indexing & Validations** — JSON schema validation and size cap enforcement (32KB max per payload)
+* [x] **Metadata RBAC Rules** — Permission checks securing read/write metadata actions across tenant boundaries
+* [x] **Metadata CRUD API Endpoints** — Dedicated REST endpoints (`/api/v1/users/me/metadata`, `/api/v1/tenants/{id}/metadata`)
+* [x] **Metadata Event Stream** — Publish `user.metadata.updated` and `tenant.metadata.updated` system events
 
 ---
 
-### Phase 5 — SaaSKit Core GA 🟡
+### Phase 5 — API Keys & Event Schema 🟢
+
+* **Status:** OPEN (Next) · **Release:** `v0.5.0`
+
+* [ ] **Tenant-Aware API Keys** — Key prefixing (`sk_live_...`, `sk_test_...`), scopes, and automatic context extraction
+* [ ] **API Key CRUD** — Create, list, revoke, and rotate API keys with RBAC protection
+* [ ] **Public Event Model** — Structured JSON event format (`event`, `tenant_id`, `actor`, `timestamp`, `data`)
+* [ ] **Webhook Foundation** — Basic webhook subscription model and delivery interface
+* [ ] **Event Types Schema** — Documented event types for user, tenant, and metadata operations
+
+---
+
+### Phase 6 — SDKs & Developer Tooling 🟡
+
+* **Status:** OPEN · **Release:** `v0.6.0`
+
+* [ ] **Go SDK (`saaskit-go`)** — Strongly typed client library with retry controls and backoff algorithms
+* [ ] **JavaScript SDK (`saaskit-js`)** — Client library with login components and metadata helpers
+* [ ] **CLI Enhancements** — Improved `saaskit` CLI with API key management and tenant switching
+* [ ] **Developer Documentation** — SDK quickstarts and integration guides
+
+---
+
+### Phase 7 — Admin Console v0.1 🟡
+
+* **Status:** OPEN · **Release:** `v0.7.0`
+
+* [ ] **Web UI Framework** — React + Vite setup with authentication
+* [ ] **User Management** — View, edit, disable users with metadata editing
+* [ ] **Tenant Management** — Organization CRUD, member management, metadata editing
+* [ ] **API Key Management** — Create, view, and revoke API keys
+* [ ] **Audit Log Viewer** — Searchable audit event log with filters
+
+---
+
+### Phase 8 — KMS & Security Hardening 🟡
+
+* **Status:** OPEN · **Release:** `v0.8.0`
+
+* [ ] **Cloud KMS Adapters** — AWS KMS, GCP KMS, and HashiCorp Vault key management
+* [ ] **JWKS Key Rotation Engine** — Signature key rotation without invalidating active sessions
+* [ ] **Security Hardening** — Additional security fixes and hardening measures
+* [ ] **Security Audit** — Third-party security review and vulnerability fixes
+
+---
+
+### Phase 9 — OpenID Certification Prep 🟡
+
+* **Status:** OPEN · **Release:** `v0.9.0`
+
+* [ ] **OIDC Conformance Tests** — Run OpenID Foundation conformance test suite
+* [ ] **Compliance Fixes** — Address any OIDC specification compliance issues
+* [ ] **Documentation Updates** — Complete OIDC provider documentation
+* [ ] **Discovery Document** — Ensure `.well-known/openid-configuration` is fully compliant
+* [ ] **UserInfo Endpoint** — Verify UserInfo endpoint returns all required claims
+
+---
+
+### Phase 10 — OpenID Certified GA 🟡
 
 * **Status:** OPEN · **Release:** `v1.0.0` 🎉
 
-* [ ] **Tenant-Aware API Keys** — Key prefixing (`sk_live_...`), scopes, and automatic context extraction:
-
-$$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context} \xrightarrow{\quad\text{RBAC}\quad} \text{Permission Enforced}$$
-
-
-* [ ] **Public System Event Model** — Structured JSON event format (`event`, `tenant_id`, `actor`, `timestamp`, `data`)
-* [ ] **Go SDK (`saaskit-go`)** — Strongly typed client library with retry controls and backoff algorithms
-* [ ] **JavaScript SDK (`saaskit-js`)** — Client library with login components and metadata helpers
-* [ ] **Admin Console (`v1.0`)** — Web UI (React + Vite) for managing users, tenants, keys, metadata, and audit logs
-* [ ] **Machine-to-Machine (M2M) Auth** — OAuth2 Client Credentials grant flow
-* [ ] **Cloud KMS Adapters** — Key management integration for AWS KMS, GCP KMS, and HashiCorp Vault
-* [ ] **OpenTelemetry Integration** — Prometheus metrics and OTLP distributed tracing collectors
-* [ ] **JWKS Key Rotation Engine** — Signature key rotation without invalidating active sessions
-* [ ] **Starter Template Generator (v0.1)** — Early version of `saaskit create` for instant local project bootstrapping
-* [ ] **Documentation Platform (`docs.saaskit.dev`)** — Quickstarts, deployment guides, and `examples/` repo (`basic-saas`, `multi-tenant-saas`)
+* [ ] **OpenID Foundation Certification** — Submit and pass OpenID Connect certification
+* [ ] **Production Readiness** — Performance testing, load testing, and production deployment guides
+* [ ] **Starter Template Generator** — `saaskit create` for instant local project bootstrapping
+* [ ] **Documentation Platform** — Quickstarts, deployment guides, and examples repository
+* [ ] **Release Engineering** — Signed releases, security advisories, and update mechanism
 
 ---
 
-### Phase 6 — Integration Platform 🟡
+### Phase 11 — Integration Platform 🟡
 
 * **Status:** OPEN · **Release:** `v1.2.0`
 
@@ -167,7 +220,7 @@ $$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context}
 
 ---
 
-### Phase 7 — Enterprise Federation 🟡
+### Phase 12 — Enterprise Federation 🟡
 
 * **Status:** OPEN · **Release:** `v1.5.0`
 
@@ -179,7 +232,7 @@ $$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context}
 
 ---
 
-### Phase 8 — SaaS Operations & Billing 🟡
+### Phase 13 — SaaS Operations & Billing 🟡
 
 * **Status:** OPEN · **Release:** `v1.7.0`
 
@@ -190,7 +243,7 @@ $$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context}
 
 ---
 
-### Phase 9 — Advanced Isolation & ReBAC 🟡
+### Phase 14 — Advanced Isolation & ReBAC 🟡
 
 * **Status:** OPEN · **Release:** `v2.0.0`
 
@@ -202,7 +255,7 @@ $$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context}
 
 ---
 
-### Phase 10 — Infrastructure Maturity 🟡
+### Phase 15 — Infrastructure Maturity 🟡
 
 * **Status:** OPEN · **Release:** `v2.2.0`
 
@@ -212,7 +265,7 @@ $$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context}
 
 ---
 
-### Phase 11 — Compliance & Residency 🟡
+### Phase 16 — Compliance & Residency 🟡
 
 * **Status:** OPEN · **Release:** `v2.5.0`
 
@@ -222,7 +275,7 @@ $$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context}
 
 ---
 
-### Phase 12 — Ecosystem & Starter Kits 🟡
+### Phase 17 — Ecosystem & Starter Kits 🟡
 
 * **Status:** OPEN · **Release:** `v3.0.0`
 

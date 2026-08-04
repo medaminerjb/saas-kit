@@ -15,7 +15,8 @@ SaaSKit provides the foundational infrastructure every multi-tenant SaaS applica
 - **OIDC Provider** — SaaSKit acts as a full OpenID Connect Provider
 - **Social login** — Google, GitHub (extensible to any OAuth2/OIDC provider)
 - **Multi-tenant ready** — Multi-tenancy support with tenant creation, member roles (Owner, Admin, Manager, Member, Viewer), and secure invitation flows
-- **RBAC** — Role-based access control with granular permissions (tenant read/update, members invite/remove)
+- **RBAC** — Role-based access control with granular permissions (tenant read/update, members invite/remove, metadata read/write)
+- **Extensible metadata** — JSONB metadata for users (public/private) and tenants with 32KB size constraints and GIN indexing
 - **MFA** — TOTP (Time-based One-Time Password) with envelope encryption and recovery codes
 - **Audit logging** — append-only identity event audit trail
 - **Event-driven architecture** — publisher interface for future Kafka/NATS/Redis integration
@@ -61,6 +62,8 @@ make run-direct
 |--------|------|-------------|
 | `GET` | `/api/v1/users/me` | Get current user |
 | `PATCH` | `/api/v1/users/me` | Update profile |
+| `GET` | `/api/v1/users/me/metadata` | Get user metadata |
+| `PATCH` | `/api/v1/users/me/metadata` | Update user metadata |
 | `GET` | `/api/v1/users/me/sessions` | List sessions |
 | `DELETE` | `/api/v1/users/me/sessions/{id}` | Revoke session |
 
@@ -74,6 +77,8 @@ make run-direct
 | `POST` | `/api/v1/tenants/invitations/accept` | Accept organization invitation |
 | `GET` | `/api/v1/tenants/{id}` | Get organization details (requires membership) |
 | `PATCH` | `/api/v1/tenants/{id}` | Update organization settings (requires admin/owner) |
+| `GET` | `/api/v1/tenants/{id}/metadata` | Get organization metadata (requires membership) |
+| `PATCH` | `/api/v1/tenants/{id}/metadata` | Update organization metadata (requires metadata.write permission) |
 | `GET` | `/api/v1/tenants/{id}/members` | List organization members (requires membership) |
 | `POST` | `/api/v1/tenants/{id}/members` | Invite new member (requires admin/owner) |
 | `DELETE` | `/api/v1/tenants/{id}/members/{uid}` | Remove member / leave organization (requires admin/owner or self) |
@@ -194,8 +199,14 @@ See the [full roadmap](docs/roadmap.md) for detailed plans through v3.0.
 1. ✅ **Foundation** — scaffold, DB, config, crypto, events, jobs
 2. ✅ **Identity** — auth, sessions, OIDC provider, social login, login UI
 3. ✅ **Multi-Tenancy** — organizations, tenant isolation
-4. ⬜ **Authorization** — RBAC, permissions middleware
-5. ⬜ **Enterprise** — SAML, SCIM, MFA, API keys
+4. ✅ **Authorization** — RBAC, permissions middleware
+5. ✅ **Metadata** — extensible JSONB metadata for users and tenants
+6. 🟢 **API Keys & Events** — tenant API keys, public event schema, webhook foundation
+7. 🟡 **SDKs & Tooling** — Go/JavaScript SDKs, CLI enhancements
+8. 🟡 **Admin Console** — web UI for users, tenants, keys, audit logs
+9. 🟡 **Security Hardening** — KMS adapters, key rotation, security fixes
+10. 🟡 **OIDC Certification Prep** — conformance tests, compliance fixes
+11. 🟡 **OpenID Certified GA** — OpenID Foundation certification (v1.0.0)
 
 ## Contributing
 
