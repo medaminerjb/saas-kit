@@ -1,491 +1,255 @@
-# SaaSKit — Product Roadmap
+# SaaSKit — Architecture & Product Roadmap
 
-> **Vision:** The open-source operating system for SaaS applications — combining what Keycloak, Auth0, Stripe, Casbin, and Clerk each do separately, earned incrementally, module by module.
-
----
-
-## Roadmap Strategy
-
-SaaSKit follows a **core-first, modular expansion** strategy. The identity and access layer ships first and is hardened before anything else is layered on top. Every post-1.0 capability is an opt-in module that plugs into the core via defined extension points.
-
-```mermaid
-gantt
-    title SaaSKit Roadmap
-    dateFormat YYYY-MM
-    axisFormat %b %Y
-
-    section Core Platform
-    Foundation (Phase 0)          :done,    p0, 2024-07, 1M
-    Identity (Phase 1)            :active,  p1, 2024-08, 2M
-    Multi-Tenancy (Phase 2)       :         p2, 2024-10, 2M
-    Authorization (Phase 3)       :         p3, 2024-12, 2M
-    Hardening & SDK (Phase 4)     :         p4, 2025-02, 2M
-
-    section Post-1.0 Modules
-    Enterprise Observability (Phase 5)  :   p5, 2025-04, 3M
-    SaaS Operations (Phase 6)           :   p6, 2025-07, 3M
-    Advanced Isolation (Phase 7)        :   p7, 2025-10, 3M
-    Enterprise Identity (Phase 8)       :   p8, 2026-01, 4M
-    Infrastructure Maturity (Phase 9)   :   p9, 2026-05, 3M
-    Compliance (Phase 10)               :   p10, 2026-08, 3M
-    Ecosystem (Phase 11)                :   p11, 2026-11, 6M
-```
+> **Vision:** The open-source operating system and infrastructure kernel for SaaS applications — combining the capabilities of Supabase Auth, Clerk, Keycloak, Stripe, and WorkOS into a unified, developer-first Go foundation.
 
 ---
 
-## Layered Architecture
+## 🏗️ Refined 6-Layer Architecture
 
-Each layer builds on the one below it. Developers can adopt only the layers they need.
+The architecture treats developer interfaces (SDKs, CLI, Admin Console) as first-class platform layers rather than secondary UI wrappers, while positioning plugins and Infrastructure as Code as the top-level ecosystem layer.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Layer 5 — Enterprise                                          │
-│  SAML · SCIM · LDAP · Provisioning · Branding · Advanced IAM   │
+│  Layer 6 — Ecosystem & Extensibility                           │
+│  Compile-Time Plugins · Terraform Provider · App Starter Kits  │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 4 — Developer Experience                                │
-│  Go SDK · TypeScript SDK · CLI · OpenAPI · Terraform Provider  │
+│  Layer 5 — Enterprise Federation & Advanced Auth               │
+│  SAML SSO · SCIM 2.0 · LDAP · OpenFGA / ReBAC · Passkeys        │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 3 — Platform                                            │
-│  Organizations · RBAC · API Keys · Audit · Webhooks · Billing  │
+│  Layer 4 — Developer Platform & Tooling                         │
+│  Go SDK · JS/React SDK · CLI (`saaskit`) · Admin Console · Docs │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 2 — Identity                                            │
-│  Users · Auth · Sessions · OIDC Provider · OAuth Federation    │
-│  MFA · Passkeys · Password Policies · Device Trust             │
+│  Layer 3 — SaaS Platform Operations                             │
+│  Organizations · RBAC · API Keys · Webhooks · Event Engine      │
+│  Billing Adapters · Feature Flags & Entitlements               │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 1 — Core Platform                                       │
-│  Config · Database · Migrations · Events · Jobs · Telemetry    │
-│  Envelope Encryption · Key Management · Feature Flags          │
+│  Layer 2 — Identity & Extensible User Core                      │
+│  Users · Auth · Sessions · OIDC Provider · OAuth Federation     │
+│  MFA (TOTP) · Extensible Public/Private Metadata (JSONB)       │
+├─────────────────────────────────────────────────────────────────┤
+│  Layer 1 — Platform Core & Infrastructure                       │
+│  Config · Database (`pgx`/`sqlc`) · Migrations · Event Bus      │
+│  Envelope Encryption · KMS Adapters · Telemetry Core           │
 └─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Phase 0 — Foundation ✅
-
-**Status:** Complete · **Timeline:** Month 1 · **Release:** internal
-
-The project scaffold, build system, database schema, and core platform services.
-
-| Deliverable | Status | Notes |
-|-------------|--------|-------|
-| Go project scaffold | ✅ | chi, pgx, sqlc, koanf, slog |
-| PostgreSQL schema (10 migrations) | ✅ | Users, sessions, OIDC, tokens, audit, MFA (reserved) |
-| Configuration system (koanf) | ✅ | Env vars + YAML, production validation |
-| Connection pool (pgx) | ✅ | Health check, configurable pool |
-| Envelope encryption (AES-256-GCM) | ✅ | HKDF key derivation, context separation |
-| Event publisher interface | ✅ | Log, Multi, Noop implementations |
-| Background job scheduler | ✅ | Ticker-based, graceful shutdown |
-| Docker Compose + Dockerfiles | ✅ | PostgreSQL 16, multi-stage production build |
-| CI pipeline (GitHub Actions) | ✅ | Lint, test, build |
-| ADRs | ✅ | sqlc, asymmetric JWT, koanf, zitadel/oidc |
-| Apache 2.0 license | ✅ | — |
-
----
-
-## Phase 1 — Identity ✅
-
-**Status:** Core complete · **Timeline:** Months 2–3 · **Release:** `v0.1.0`
-
-Complete identity management: authentication, sessions, OIDC, social login.
-
-| Deliverable | Status | Notes |
-|-------------|--------|-------|
-| User domain model (6-state lifecycle) | ✅ | active, disabled, locked, pending, invited, deleted |
-| Argon2id password hashing | ✅ | PHC format, configurable params |
-| JWT key management (RS256/ES256/EdDSA) | ✅ | Auto-gen in dev, fail in prod |
-| HMAC token hashing | ✅ | Server-secret-bound, not raw SHA-256 |
-| Auth service (register/login/refresh/logout) | ✅ | Refresh token rotation |
-| Password reset flow | ✅ | Generic identity token system |
-| Email verification flow | ✅ | Generic identity token system |
-| User profile CRUD | ✅ | Soft delete support |
-| Session management | ✅ | List, revoke, cleanup job |
-| HTTP API + middleware | ✅ | JWT auth, CORS, request logging |
-| OIDC Discovery endpoint | ✅ | `/.well-known/openid-configuration` |
-| IdentityManager orchestrator | ✅ | Ready for MFA/WebAuthn extension |
-| Audit event publisher | ✅ | Logs all identity operations |
-| Unit tests (16 passing) | ✅ | Race detection enabled |
-| OIDC Provider (zitadel/oidc) | ✅ | Full `op.Storage` impl, authorization code + PKCE |
-| Social login (Google, GitHub) | ✅ | OAuth2 relying party with CSRF protection |
-| Login/consent UI (Go templates) | ✅ | Dark-themed, production-replaceable |
-| CreateSessionForUser (social login) | ✅ | Passwordless session for federated users |
-| OIDC client queries (sqlc) | ✅ | CRUD for `oidc_clients` table |
-| Identity provider queries (sqlc) | ✅ | CRUD for `identity_providers` + `external_accounts` |
-| Integration tests | ✅ | Real PostgreSQL |
-| Docker compose smoke test | ✅ | End-to-end flow |
-
-### API Endpoints (Phase 1)
 
 ```
-POST   /api/v1/auth/register          Register
-POST   /api/v1/auth/login             Login
-POST   /api/v1/auth/refresh           Refresh tokens
-POST   /api/v1/auth/logout            Logout (auth required)
-POST   /api/v1/auth/forgot-password   Request password reset
-POST   /api/v1/auth/reset-password    Execute password reset
-POST   /api/v1/auth/verify-email      Verify email
-GET    /api/v1/users/me               Current user (auth required)
-PATCH  /api/v1/users/me               Update profile (auth required)
-GET    /api/v1/users/me/sessions      List sessions (auth required)
-DELETE /api/v1/users/me/sessions/{id} Revoke session (auth required)
-
-GET    /.well-known/openid-configuration   OIDC Discovery
-GET    /oidc/keys                          JWKS
-GET    /oauth2/{provider}/login            Social login initiation
-GET    /oauth2/{provider}/callback         Social login callback
-
-GET    /health                             Liveness
-GET    /ready                              Readiness (DB check)
-```
 
 ---
 
-## Phase 2 — Multi-Tenancy ✅
+## 📊 Master Phase & Version Tracking
 
-**Status:** Completed · **Release:** `v0.2.0`
-
-Organizations and shared-database tenant isolation.
-
-| Deliverable | Notes |
-|-------------|-------|
-| Tenant domain model | ID, name, slug, status, plan (reserved) |
-| Organization CRUD | Create, update, disable, delete |
-| User ↔ Tenant membership | Join, leave, switch |
-| Multi-org membership per user | Users belong to multiple orgs |
-| User invitations | Invite by email, accept/reject flow |
-| Tenant context middleware | Extract `tenant_id` from JWT, set PostgreSQL session variable |
-| Tenant-scoped queries | Enforce `tenant_id` filtering across all repositories |
-| Feature flag tenant overrides | Per-tenant feature flag table |
-| Tenant-scoped audit logs | Audit logs filtered by tenant |
-
-### Database Tables (Phase 2)
-
-```sql
-tenants (id, name, slug, plan, status, created_at, updated_at)
-tenant_members (tenant_id, user_id, role, joined_at)
-tenant_invitations (tenant_id, email, role, token_hash, expires_at, accepted_at)
-tenant_feature_flags (tenant_id, feature_flag_id, enabled)
-```
-
-### API Endpoints (Phase 2)
-
-```
-POST   /api/v1/tenants                    Create organization
-GET    /api/v1/tenants                    List user's organizations
-GET    /api/v1/tenants/{id}               Get organization
-PATCH  /api/v1/tenants/{id}               Update organization
-POST   /api/v1/tenants/{id}/members       Invite member
-GET    /api/v1/tenants/{id}/members       List members
-DELETE /api/v1/tenants/{id}/members/{uid} Remove member
-POST   /api/v1/tenants/switch             Switch active organization
-```
+| Version Target | Phase | Focus Area | Status | Deliverable Scope |
+| --- | --- | --- | --- | --- |
+| **`internal`** | **Phase 0** | Foundation | ✅ Completed | Go scaffold, schema, `koanf`, envelope encryption, event bus |
+| **`v0.1.0`** | **Phase 1** | Identity | ✅ Completed | Argon2id, OIDC Provider (`zitadel/oidc`), social OAuth2, sessions |
+| **`v0.2.0`** | **Phase 2** | Multi-Tenancy | ✅ Completed | Organizations, member invite flows, DB isolation prep, CLI v0.1 |
+| **`v0.3.0`** | **Phase 3** | Authorization & MFA | 🟢 **OPEN (Next)** | Tenant-scoped RBAC, TOTP, recovery codes, token grace rotation |
+| **`v0.4.0`** | **Phase 4** | Metadata & Extensible Identity | 🟡 **OPEN** |  JSONB metadata, schema validation, GIN indexes, metadata events |
+| **`v1.0.0`** | **Phase 5** | SaaSKit Core GA | 🟡 **OPEN** | Tenant API Keys, Public Event Schema, Admin Console, SDKs, KMS |
+| **`v1.2.0`** | **Phase 6** | Integration Platform | 🟡 **OPEN** | Outbound Webhook Engine, OAuth App Provider, Email Abstraction |
+| **`v1.5.0`** | **Phase 7** | Enterprise Federation | 🟡 **OPEN** | SAML 2.0, Home Realm Discovery, SCIM 2.0, LDAP Directory Sync |
+| **`v1.7.0`** | **Phase 8** | SaaS Operations & Billing | 🟡 **OPEN** | Stripe adapter, feature flags engine, usage metering aggregators |
+| **`v2.0.0`** | **Phase 9** | Advanced Isolation & ReBAC | 🟡 **OPEN** | PostgreSQL RLS, OpenFGA Connector, Passkeys (WebAuthn) |
+| **`v2.2.0`** | **Phase 10** | Infrastructure Maturity | 🟡 **OPEN** | Active-Active HA, multi-region routing, PgBouncer optimization |
+| **`v2.5.0`** | **Phase 11** | Compliance & Residency | 🟡 **OPEN** | GDPR data export/erasure, SOC2 evidence, data residency pinning |
+| **`v3.0.0`** | **Phase 12** | Ecosystem & Starter Kits | 🟡 **OPEN** | Go Plugin SDK, Terraform Provider, `saaskit create` starter templates |
 
 ---
 
-## Phase 3 — Authorization ⬜
+## 🗺️ Master Deliverables & Checklist
 
-**Status:** Not started · **Timeline:** Months 5–6 · **Release:** `v0.3.0`
+### Phase 0 — Foundation ✅
 
-RBAC engine with fixed role set and permission middleware.
+* **Status:** Completed · **Release:** `internal`
 
-| Deliverable | Notes |
-|-------------|-------|
-| Role model | Owner, Admin, Manager, Member, Viewer |
-| Permission model | Resource-action format (`project.read`, `users.create`) |
-| Role-permission mapping | Configurable via YAML or API |
-| Permission middleware | `RequirePermission("project.delete")` |
-| Tenant-scoped roles | Roles are per-tenant, not global |
-| Role assignment API | Assign/revoke roles for tenant members |
-| Permission checking service | Check if user has permission in tenant context |
-| Docker + Helm deployment support | Kubernetes-ready |
-
-### Database Tables (Phase 3)
-
-```sql
-roles (id, tenant_id, name, description, is_system)
-permissions (id, resource, action, description)
-role_permissions (role_id, permission_id)
-tenant_member_roles (tenant_member_id, role_id)
-```
-
-### Middleware Example
-
-```go
-r.With(rbac.RequirePermission("project.delete")).Delete("/projects/{id}", handler)
-```
+* [x] **Go project scaffold** — `chi`, `pgx`, `sqlc`, `koanf`, `slog`
+* [x] **PostgreSQL schema** — 10 base migrations
+* [x] **Configuration system** — Environment variables + YAML validation
+* [x] **Connection pool** — Configurable `pgx` pool with health check
+* [x] **Envelope encryption** — AES-256-GCM with HKDF key derivation
+* [x] **Event publisher interface** — Log, Multi, and Noop implementations
+* [x] **Background job scheduler** — Graceful ticker shutdown system
+* [x] **Containerization** — Docker Compose + multi-stage Dockerfiles
+* [x] **CI pipeline** — GitHub Actions lint, test, and build suite
+* [x] **ADRs** — Architecture decisions (`sqlc`, asymmetric JWTs, `zitadel/oidc`)
+* [x] **Open-source license** — Apache 2.0
 
 ---
 
-## Phase 4 — Hardening & SDK ⬜
+### Phase 1 — Identity ✅
 
-**Status:** Not started · **Timeline:** Months 6–7 · **Release:** `v1.0.0` 🎉
+* **Status:** Completed · **Release:** `v0.1.0`
 
-Security audit, SDK finalization, documentation, and load testing.
-
-| Deliverable | Notes |
-|-------------|-------|
-| Security review / threat model | Release gate — must pass before v1.0 |
-| Go SDK | `saaskit-go` — typed client for all APIs |
-| TypeScript/JavaScript SDK | `saaskit-js` — typed client for frontend/Node |
-| OpenAPI specification | Auto-generated from handlers |
-| API versioning policy | Documented backward compatibility guarantee |
-| Load testing | 1,000 tenants, 100,000 users, sub-100ms p95 |
-| Documentation site | Architecture, guides, API reference |
-| v1.0.0 GA release | — |
-
-### SDK Example
-
-```typescript
-const saaskit = new SaaSKit({ baseUrl: "https://auth.example.com" });
-
-const { user, tokens } = await saaskit.auth.register({
-  email: "user@example.com",
-  password: "SecurePass123!",
-  name: "Jane Doe",
-});
-
-const tenant = await saaskit.tenants.create({ name: "Acme Corp" });
-```
+* [x] **User domain model** — 6-state lifecycle (`active`, `disabled`, `locked`, `pending`, `invited`, `deleted`)
+* [x] **Argon2id password hashing** — PHC format with configurable memory/threads
+* [x] **JWT key management** — RS256/ES256/EdDSA dynamic key handling
+* [x] **Auth service core** — Registration, login, refresh rotation, logout
+* [x] **Password reset & email verification** — Generic identity token flows
+* [x] **Session management** — List, revoke by ID, and automated background cleanup
+* [x] **OIDC Provider** — Full `zitadel/oidc` implementation with PKCE support
+* [x] **Social login** — Google & GitHub OAuth2 relying party integration
+* [x] **Login/Consent UI** — Dark-themed Go HTML templates
+* [x] **Audit event logging** — System audit trail for all identity actions
 
 ---
 
-## Phase 5 — Enterprise Observability ⬜
+### Phase 2 — Multi-Tenancy ✅
 
-**Status:** Not started · **Timeline:** Months 8–10 · **Release:** `v1.2.0`
+* **Status:** Completed · **Release:** `v0.2.0`
 
-### Module: Audit Logs (Enhanced)
-
-Upgrade from event-based logging to a full audit system with search, export, and retention.
-
-| Feature | Notes |
-|---------|-------|
-| Full-text search on audit logs | Filter by actor, target, event, tenant, date range |
-| Audit log export (CSV, JSON) | Compliance reporting |
-| Retention policies | Auto-purge after configurable period |
-| Compliance report generation | SOC2-style audit trail summaries |
-| Webhook notifications for events | Real-time audit streaming |
-
-### Module: API Key Management
-
-| Feature | Notes |
-|---------|-------|
-| API key CRUD | Create, list, revoke |
-| Key format: `sk_live_xxxxxx` | Prefix-based for easy identification |
-| Scoped permissions | Keys inherit a subset of user permissions |
-| Expiration and rotation | TTL, manual rotation |
-| Rate limiting per key | Configurable per-key limits |
-| Key hashing | Only hash stored, prefix shown in UI |
-
-```json
-{
-  "key": "sk_live_abc123...",
-  "name": "Production API",
-  "scopes": ["project.read", "project.update"],
-  "expires_at": "2025-12-31T23:59:59Z"
-}
-```
+* [x] **Tenant domain model** — Organization attributes (`id`, `name`, `slug`, `status`)
+* [x] **Organization CRUD** — Multi-org membership per user
+* [x] **User invitations** — Email token workflow (`accepted`, `rejected`)
+* [x] **Tenant context middleware** — Dynamic extraction of `tenant_id` from JWT to set DB session vars
+* [x] **Tenant-scoped queries** — Strict repository-level query isolation
+* [x] **Tenant connection resolver** — Connection router interface for future DB-per-tenant support
+* [x] **Developer CLI (v0.1)** — Local user setup, tenant management, and migration execution
 
 ---
 
-## Phase 6 — SaaS Operations ⬜
+### Phase 3 — Authorization & MFA ✅
 
-**Status:** Not started · **Timeline:** Months 10–13 · **Release:** `v1.5.0`
+* **Status:** Completed · **Release:** `v0.3.0`
 
-### Module: Usage Tracking
-
-| Feature | Notes |
-|---------|-------|
-| Track API calls per tenant | Counter-based metering |
-| Track storage usage | Per-tenant storage quotas |
-| Track user count per tenant | Plan limit enforcement |
-| Usage dashboard API | Expose metrics for admin UIs |
-| Usage export | CSV/JSON for billing integration |
-
-### Module: Billing Integration
-
-> **Philosophy:** SaaSKit is a thin webhook/event relay layer, not an opinionated billing engine. Pricing logic belongs in the host application.
-
-| Feature | Notes |
-|---------|-------|
-| Stripe adapter | Webhook ingestion, subscription sync |
-| Paddle adapter | — |
-| Lemon Squeezy adapter | — |
-| Subscription lifecycle events | `created`, `updated`, `cancelled`, `payment.failed` |
-| Plan ↔ feature flag mapping | Enable features based on subscription plan |
-| Webhook signature verification | Secure ingestion |
+* [x] **Role model** — Pre-configured system roles (`Owner`, `Admin`, `Manager`, `Member`, `Viewer`)
+* [x] **Granular permission model** — Resource-action formatting (`tenant.read`, `tenant.update`, `members.invite`, `members.remove`)
+* [x] **Permission middleware** — Route protection via `RequirePermission("resource.action")`
+* [x] **Tenant-scoped RBAC** — Contextual roles bound per organization
+* [x] **MFA Framework** — Enrollment, challenge verification, and recovery systems
+* [x] **TOTP Provider** — Authenticator app setup, encrypted secret storage, backup codes
+* [x] **Graceful token rotation** — 10-second grace window to eliminate concurrent refresh token race conditions
 
 ---
 
-## Phase 7 — Advanced Isolation ⬜
+### Phase 4 — Metadata & Extensible Identity 🟢
 
-**Status:** Not started · **Timeline:** Year 2, Q1 · **Release:** `v1.7.0`
+* **Status:** OPEN (Immediate Priority) · **Release:** `v0.4.0`
 
-| Feature | Notes |
-|---------|-------|
-| Schema-per-tenant isolation | `tenant_a.users` |
-| Database-per-tenant isolation | Dedicated database instances |
-| Migration tooling | Move tenants between isolation modes without downtime |
-| Connection routing | Automatic routing based on tenant config |
-| Performance benchmarks | Compare isolation modes |
-
----
-
-## Phase 8 — Enterprise Identity & Access ⬜
-
-**Status:** Not started · **Timeline:** Year 2, Q2–Q3 · **Release:** `v2.0.0`
-
-### Identity
-
-| Feature | Notes |
-|---------|-------|
-| MFA (TOTP) | Tables already reserved in Phase 0 |
-| WebAuthn / Passkeys | FIDO2 support |
-| SAML SSO | Enterprise IdP federation |
-| SCIM 2.0 provisioning | Directory sync (Azure AD, Okta) |
-| LDAP integration | Enterprise directory lookup |
-| Adaptive MFA | Risk-based MFA challenges |
-| Password policies | Complexity, history, expiry |
-| Device trust | Trusted device management |
-
-### Authorization
-
-| Feature | Notes |
-|---------|-------|
-| ABAC policy engine | Attribute-based access control |
-| Relationship-based permissions | Zanzibar/OpenFGA-style |
-| Policy language | `user.department == project.department` |
-| Policy evaluation engine | Build in-house or embed Casbin/OpenFGA |
+* [ ] **User Metadata Storage** — `metadata_public` (client-accessible) and `metadata_private` (backend-only) JSONB columns on `users`
+* [ ] **Organization Metadata Storage** — `metadata` JSONB column on `tenants` for billing IDs, locales, and custom configs
+* [ ] **GIN Indexing & Validations** — JSON schema validation and size cap enforcement (32KB max per payload)
+* [ ] **Metadata RBAC Rules** — Permission checks securing read/write metadata actions across tenant boundaries
+* [ ] **Metadata CRUD API Endpoints** — Dedicated REST endpoints (`/api/v1/users/{id}/metadata`, `/api/v1/tenants/{id}/metadata`)
+* [ ] **Metadata Event Stream** — Publish `user.metadata.updated` and `organization.metadata.updated` system events
 
 ---
 
-## Phase 9 — Infrastructure Maturity ⬜
+### Phase 5 — SaaSKit Core GA 🟡
 
-**Status:** Not started · **Timeline:** Year 2, Q4 · **Release:** `v2.2.0`
+* **Status:** OPEN · **Release:** `v1.0.0` 🎉
 
-| Feature | Notes |
-|---------|-------|
-| Multi-region deployment | Geographic redundancy |
-| High availability | Active-active or active-passive |
-| Backup / restore system | Point-in-time recovery |
-| OpenTelemetry integration | Traces, metrics, structured logs |
-| Scale targets | 10,000 tenants, 1M users, 100M audit events |
-| Connection pooling (PgBouncer) | Production-grade DB connection management |
+* [ ] **Tenant-Aware API Keys** — Key prefixing (`sk_live_...`), scopes, and automatic context extraction:
 
----
+$$\text{API Key} \xrightarrow{\quad\text{Validation}\quad} \text{Tenant Context} \xrightarrow{\quad\text{RBAC}\quad} \text{Permission Enforced}$$
 
-## Phase 10 — Compliance ⬜
 
-**Status:** Not started · **Timeline:** Year 2, Q4+ · **Release:** `v2.5.0`
-
-| Feature | Notes |
-|---------|-------|
-| GDPR data export | User data portability |
-| Right-to-erasure workflows | Automated data deletion with audit trail |
-| SOC2 report generation | Audit evidence collection |
-| Data residency controls | Tenant data pinned to specific regions |
-| Consent management | Cookie consent, privacy preferences |
-| Data classification | Tag sensitive fields |
+* [ ] **Public System Event Model** — Structured JSON event format (`event`, `tenant_id`, `actor`, `timestamp`, `data`)
+* [ ] **Go SDK (`saaskit-go`)** — Strongly typed client library with retry controls and backoff algorithms
+* [ ] **JavaScript SDK (`saaskit-js`)** — Client library with login components and metadata helpers
+* [ ] **Admin Console (`v1.0`)** — Web UI (React + Vite) for managing users, tenants, keys, metadata, and audit logs
+* [ ] **Machine-to-Machine (M2M) Auth** — OAuth2 Client Credentials grant flow
+* [ ] **Cloud KMS Adapters** — Key management integration for AWS KMS, GCP KMS, and HashiCorp Vault
+* [ ] **OpenTelemetry Integration** — Prometheus metrics and OTLP distributed tracing collectors
+* [ ] **JWKS Key Rotation Engine** — Signature key rotation without invalidating active sessions
+* [ ] **Starter Template Generator (v0.1)** — Early version of `saaskit create` for instant local project bootstrapping
+* [ ] **Documentation Platform (`docs.saaskit.dev`)** — Quickstarts, deployment guides, and `examples/` repo (`basic-saas`, `multi-tenant-saas`)
 
 ---
 
-## Phase 11 — Ecosystem ⬜
+### Phase 6 — Integration Platform 🟡
 
-**Status:** Not started · **Timeline:** Year 3 · **Release:** `v3.0.0`
+* **Status:** OPEN · **Release:** `v1.2.0`
 
-### Admin Dashboard
-
-```
-/admin
-  ├── Users          — search, create, disable, impersonate
-  ├── Tenants        — manage organizations, plans
-  ├── Security       — active sessions, MFA enrollment
-  ├── Usage          — API calls, storage, quotas
-  ├── Billing        — subscriptions, invoices
-  ├── Logs           — audit trail, event stream
-  └── Settings       — OIDC clients, IdPs, feature flags
-```
-
-### Plugin Marketplace
-
-| Plugin Type | Examples |
-|------------|---------|
-| Billing | Stripe, Paddle, LemonSqueezy |
-| CRM | Salesforce, HubSpot |
-| Analytics | Mixpanel, Amplitude, PostHog |
-| Communication | SendGrid, Twilio, Resend |
-| Storage | S3, GCS, MinIO |
-| Search | Elasticsearch, Meilisearch |
-
-### Developer CLI
-
-```bash
-saaskit init                          # Initialize new SaaSKit project
-saaskit generate model Invoice        # Generate domain model
-saaskit generate migration add_foo    # Create migration
-saaskit migrate up                    # Run migrations
-saaskit create-service billing        # Scaffold a new service module
-saaskit tenant list                   # List tenants
-saaskit user create --email=...       # Create user from CLI
-```
-
-### Terraform Provider
-
-```hcl
-resource "saaskit_tenant" "acme" {
-  name = "Acme Corp"
-  slug = "acme"
-  plan = "enterprise"
-}
-
-resource "saaskit_oidc_client" "web_app" {
-  client_name   = "Web Application"
-  redirect_uris = ["https://app.acme.com/callback"]
-  grant_types   = ["authorization_code"]
-  pkce_required = true
-}
-```
+* [ ] **Webhook Engine** — Dynamic subscription endpoints, asynchronous worker pool, and delivery queues
+* [ ] **Cryptographic Signatures** — HMAC-SHA256 headers for webhook verification and replay prevention
+* [ ] **OAuth Application Provider** — Allow third-party applications to build integrations against SaaSKit
+* [ ] **Email Provider Abstraction** — Mailer drivers for SendGrid, Resend, Postmark, and SMTP
 
 ---
 
-## Open Design Decisions
+### Phase 7 — Enterprise Federation 🟡
 
-These need product decisions before the relevant phase starts:
+* **Status:** OPEN · **Release:** `v1.5.0`
 
-| # | Question | Affects | Recommendation |
-|---|----------|---------|---------------|
-| 1 | **Billing philosophy** — dictate plan/feature schema or relay provider webhooks? | Phase 6 | Relay layer (avoid becoming a billing product) |
-| 2 | **ABAC engine** — build in-house vs. embed OpenFGA/Casbin? | Phase 8 | Evaluate both; likely OpenFGA adapter |
-| 3 | **Tenant isolation migration** — how to move between modes without downtime? | Phase 7 | Needs dedicated design doc |
-| 4 | **API versioning policy** — how to handle breaking changes? | Phase 4 | Semantic versioning + deprecation headers |
-| 5 | **Governance model** — contributor guidelines, RFC process? | Phase 5+ | Establish before accepting external modules |
-| 6 | **Open-core boundary** — what stays open vs. commercial? | All | Decide before v1.0 to avoid community friction |
-| 7 | **UUID v4 vs v7/ULID** — ordered IDs for index optimization? | Phase 7+ | Evaluate when hitting scale targets |
-| 8 | **PostgreSQL RLS** — row-level security for tenant isolation? | Phase 2 | Design repos to be RLS-compatible |
+* [ ] **SAML 2.0 SP Implementation** — Enterprise IdP integration (Okta, Azure AD, Ping Identity)
+* [ ] **Home Realm Discovery (HRD)** — Automatic domain matching to route users to designated enterprise IdPs
+* [ ] **SCIM 2.0 Provisioning** — Inbound user and group provisioning/deprovisioning APIs
+* [ ] **LDAP Synchronization** — Active Directory and LDAP server user synchronization
+* [ ] **Attribute Mapper** — Mapping SAML, SCIM, and LDAP attributes into dynamic user metadata
 
 ---
 
-## Performance Targets
+### Phase 8 — SaaS Operations & Billing 🟡
 
-| Milestone | Tenants | Users | Audit Events | Auth p95 |
-|-----------|---------|-------|-------------|----------|
-| **v1.0** | 1,000 | 100,000 | — | < 100ms |
-| **v2.0** | 10,000 | 1,000,000 | 100,000,000 | < 50ms |
-| **v3.0** | 100,000 | 10,000,000 | 1,000,000,000 | < 25ms |
+* **Status:** OPEN · **Release:** `v1.7.0`
 
----
-
-## Team Size Estimates
-
-| Phase | Scope | Team Size | Duration |
-|-------|-------|-----------|----------|
-| v1.0 (Phases 0–4) | Identity + Tenancy + RBAC | 2–5 engineers | ~7 months |
-| v1.5 (Phases 5–6) | Audit + API Keys + Billing | 3–5 engineers | ~6 months |
-| v2.0 (Phases 7–8) | Enterprise Identity + Isolation | 5–8 engineers | ~8 months |
-| v3.0 (Phases 9–11) | Scale + Compliance + Ecosystem | 8–15 engineers | ~12 months |
+* [ ] **Stripe Adapter** — Subscription state tracking, plan synchronization, and webhook verification
+* [ ] **Billing Metadata Linkage** — Store customer IDs, subscription statuses, and invoice links directly in tenant metadata
+* [ ] **Feature Flags Engine** — Rule-based flag evaluation using user and tenant metadata attributes
+* [ ] **Usage Metering Engine** — Time-series counter aggregations for seats, storage, and API usage
 
 ---
 
-## Positioning
+### Phase 9 — Advanced Isolation & ReBAC 🟡
 
-**v1.0:** *"The open-source, tenancy-native identity and access foundation for SaaS apps"* — direct alternative to Keycloak, narrower than Auth0/Clerk in surface area but deeper on multi-tenancy out of the box.
+* **Status:** OPEN · **Release:** `v2.0.0`
 
-**v2.0+:** *"The open-source operating system for SaaS applications"* — combining what Keycloak, Stripe, Auth0, Casbin, and Clerk each do separately — but earned incrementally, module by module, on top of a core that's already trusted in production.
+* [ ] **PostgreSQL Row-Level Security (RLS)** — Shared-database RLS policies and execution templates
+* [ ] **Schema-per-Tenant Isolation** — Dynamic schema routing via the tenant connection resolver
+* [ ] **Database-per-Tenant Isolation** — Multi-database dynamic connection routing and migration runner
+* [ ] **OpenFGA Connector** — Plug-and-play adapter for relationship-based authorization (ReBAC)
+* [ ] **Passkeys (WebAuthn)** — Biometric FIDO2 passwordless authentication
+
+---
+
+### Phase 10 — Infrastructure Maturity 🟡
+
+* **Status:** OPEN · **Release:** `v2.2.0`
+
+* [ ] **High Availability Architecture** — Active-Active cluster deployments with `PgAdvisory` lock management
+* [ ] **Multi-Region Routing** — Geo-distributed data routing and read replica optimization
+* [ ] **PgBouncer Integration** — Prepared statement connection pooling configurations
+
+---
+
+### Phase 11 — Compliance & Residency 🟡
+
+* **Status:** OPEN · **Release:** `v2.5.0`
+
+* [ ] **GDPR Automation** — Data export tools and automated right-to-be-forgotten deletion workflows
+* [ ] **SOC2 Evidence Engine** — Automated report generation for audit logging and access control rules
+* [ ] **Data Residency Pinning** — Geographically bound database record placement rules
+
+---
+
+### Phase 12 — Ecosystem & Starter Kits 🟡
+
+* **Status:** OPEN · **Release:** `v3.0.0`
+
+* [ ] **Compile-Time Plugin SDK** — Interface-based Go plugins for custom billing, storage, and notification drivers
+* [ ] **Terraform Provider** — Infrastructure as Code provider for managing tenants, OIDC clients, keys, and roles
+* [ ] **CLI Scaffolding Framework (`saaskit create`)** — Full starter generators for production SaaS applications
+
+---
+
+## 📐 Strategic Architecture & Open Decisions
+
+| ID | Topic | Target Phase | Recommendation | Status |
+| --- | --- | --- | --- | --- |
+| **#1** | **Billing Scope** | Phase 8 (`v1.7.0`) | Thin event relay only (Stripe first, defer Paddle/LemonSqueezy) | 🟡 **OPEN** |
+| **#2** | **Fine-Grained Auth** | Phase 9 (`v2.0.0`) | Do not build internal Zanzibar engine; build official OpenFGA & Casbin connectors | 🟡 **OPEN** |
+| **#3** | **Tenant Connection Routing** | Phase 2/9 (`v2.0.0`) | Expose repository connection resolver interface from Phase 2; plug in dynamic DB routing in Phase 9 | 🟡 **OPEN** |
+| **#4** | **Plugin System** | Phase 12 (`v3.0.0`) | Build compile-time Go plugins (Caddy style) rather than WASM sandboxing | 🟡 **OPEN** |
+
+---
+
+## 🎯 Production Performance & Target SLA
+
+| Metric Category | Target Value | Verification Standard |
+| --- | --- | --- |
+| **Tenant Scale** | $1,000$ tenants (v1.0) $\rightarrow 100,000$ tenants (v3.0) | Multi-tenant schema indexing tests |
+| **User Capacity** | $100,000$ users (v1.0) $\rightarrow 10,000,000$ users (v3.0) | Load testing against PostgreSQL |
+| **Authentication Latency** | $p_{95} < 100\text{ ms}$ (v1.0) $\rightarrow p_{95} < 25\text{ ms}$ (v3.0) | End-to-end HTTP bench |
+| **Token Verification Speed** | $< 5\text{ ms}$ local verification | In-memory asymmetric key checks |
+| **Throughput Target** | $10,000\text{ RPS}$ concurrent auth requests | CPU/Memory optimization benchmarking |
+| **Audit Event Volume** | $10,000,000$ events (v1.0) $\rightarrow 1,000,000,000$ events (v3.0) | DB partition scaling tests |
