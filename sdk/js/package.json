@@ -1,0 +1,44 @@
+{
+  "name": "@saaskit/js",
+  "version": "0.1.0",
+  "description": "Official JavaScript client library for SaaSKit",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "lint": "eslint src"
+  },
+  "keywords": [
+    "saaskit",
+    "authentication",
+    "identity",
+    "multi-tenant",
+    "sdk"
+  ],
+  "author": "SaaSKit",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@types/jest": "^29.5.11",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "rollup": "^4.9.6",
+    "rollup-plugin-dts": "^6.1.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {},
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/medaminerjb/saas-kit.git",
+    "directory": "sdk/js"
+  }
+}
