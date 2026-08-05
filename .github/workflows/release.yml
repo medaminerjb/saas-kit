@@ -7,8 +7,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  packages: write
   id-token: write
   attestations: write
 
@@ -16,13 +14,18 @@ jobs:
   release:
     name: Build & Release SaaSKit
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -32,7 +35,7 @@ jobs:
       # -------------------------
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
           cache: true
@@ -43,7 +46,7 @@ jobs:
       # -------------------------
 
       - name: Release binaries
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           distribution: goreleaser
           version: '~> v2'
@@ -56,15 +59,15 @@ jobs:
       # -------------------------
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@49b3bc8e6dda4a8977600bea456c932b0a9609ac # v3.3.0
 
 
       - name: Setup Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@b5e57e7c7db8d691c5e4c09ef6368d782a928d6f # v3.10.0
 
 
       - name: Login GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@9780b0c442fbb5b8788c0f751f4c8b67e896e3e7 # v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -86,7 +89,7 @@ jobs:
 
 
       - name: Build SaaSKit image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -105,7 +108,7 @@ jobs:
       # -------------------------
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: ghcr.io/medaminerjb/saaskit:${{ steps.meta.outputs.version }}
 
@@ -116,7 +119,7 @@ jobs:
       # -------------------------
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
 
       - name: Sign container image
@@ -132,7 +135,7 @@ jobs:
       # -------------------------
 
       - name: Generate provenance attestation
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
           subject-name: ghcr.io/medaminerjb/saaskit
           subject-digest: ${{ steps.build.outputs.digest }}
