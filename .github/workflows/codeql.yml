@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@PINNED_SHA
+      - uses: actions/checkout@v4
 
-      - uses: github/codeql-action/init@PINNED_SHA
+      - uses: github/codeql-action/init@v3
         with:
           languages: go
 
-      - uses: github/codeql-action/analyze@PINNED_SHA
+      - uses: github/codeql-action/analyze@v3
