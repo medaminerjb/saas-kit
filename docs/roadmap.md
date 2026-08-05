@@ -45,7 +45,7 @@ The architecture treats developer interfaces (SDKs, CLI, Admin Console) as first
 | **`v0.2.0`** | **Phase 2** | Multi-Tenancy | ✅ Completed | Organizations, member invite flows, DB isolation prep, CLI v0.1 |
 | **`v0.3.0`** | **Phase 3** | Authorization & MFA | ✅ Completed | Tenant-scoped RBAC, TOTP, recovery codes, token grace rotation |
 | **`v0.4.0`** | **Phase 4** | Metadata & Extensible Identity | ✅ Completed | JSONB metadata, schema validation, GIN indexes, metadata events |
-| **`v0.5.0`** | **Phase 5** | API Keys & Event Schema | 🟢 **OPEN (Next)** | Tenant API Keys, public event model, webhook foundation |
+| **`v0.5.0`** | **Phase 5** | API Keys & Event Schema | ✅ Completed | Tenant API Keys, public event model, webhook foundation |
 | **`v0.6.0`** | **Phase 6** | SDKs & Developer Tooling | 🟡 **OPEN** | Go SDK, JavaScript SDK, CLI enhancements |
 | **`v0.7.0`** | **Phase 7** | Admin Console v0.1 | 🟡 **OPEN** | Web UI for users, tenants, keys, audit logs |
 | **`v0.8.0`** | **Phase 8** | KMS & Security Hardening | 🟡 **OPEN** | Cloud KMS adapters, key rotation, security fixes |
@@ -139,15 +139,15 @@ The architecture treats developer interfaces (SDKs, CLI, Admin Console) as first
 
 ---
 
-### Phase 5 — API Keys & Event Schema 🟢
+### Phase 5 — API Keys & Event Schema ✅
 
-* **Status:** OPEN (Next) · **Release:** `v0.5.0`
+* **Status:** Completed · **Release:** `v0.5.0`
 
-* [ ] **Tenant-Aware API Keys** — Key prefixing (`sk_live_...`, `sk_test_...`), scopes, and automatic context extraction
-* [ ] **API Key CRUD** — Create, list, revoke, and rotate API keys with RBAC protection
-* [ ] **Public Event Model** — Structured JSON event format (`event`, `tenant_id`, `actor`, `timestamp`, `data`)
-* [ ] **Webhook Foundation** — Basic webhook subscription model and delivery interface
-* [ ] **Event Types Schema** — Documented event types for user, tenant, and metadata operations
+* [x] **Tenant-Aware API Keys** — Key prefixing (`sk_live_...`, `sk_test_...`), scopes, and automatic context extraction
+* [x] **API Key CRUD** — Create, list, revoke, and rotate API keys with RBAC protection
+* [x] **Public Event Model** — Structured JSON event format (`event`, `tenant_id`, `actor`, `timestamp`, `data`)
+* [x] **Webhook Foundation** — Basic webhook subscription model and delivery interface
+* [x] **Event Types Schema** — Documented event types for user, tenant, and metadata operations
 
 ---
 
