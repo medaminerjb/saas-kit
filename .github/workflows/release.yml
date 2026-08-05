@@ -65,7 +65,7 @@ jobs:
             dist/saaskit_${{ github.ref_name }}_checksums.txt
 
       - name: Upload signed checksums
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f69875dd29fd09d2080600d9 # v4.6.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: signed-checksums
           path: |
