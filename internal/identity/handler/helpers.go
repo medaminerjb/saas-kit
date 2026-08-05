@@ -56,3 +56,16 @@ func extractIP(r *http.Request) string {
 	}
 	return host
 }
+
+// requireTenantMembership is a middleware that verifies the authenticated user belongs to the requested tenant.
+// If valid, it injects tenant_id and role into the request context.
+// This is a simplified version that requires the tenant service to be passed in.
+// For now, we'll create a placeholder that can be wired up later.
+func requireTenantMembership(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO: Implement tenant membership check
+		// This requires access to tenantService which needs to be passed in
+		// For now, we'll just pass through - this should be wired up properly
+		next.ServeHTTP(w, r)
+	})
+}
