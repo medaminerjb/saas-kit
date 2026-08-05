@@ -39,3 +39,23 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--yes"
+      - "--output"
+      - "${signature}"
+      - "${artifact}"
+      - "--certificate"
+      - "${certificate}"
+      - "--certificate-identity"
+      - "https://github.com/medaminerjb/saaskit/.github/workflows/release.yml@refs/tags/{{ .Tag }}"
+      - "--certificate-oidc-issuer"
+      - "https://token.actions.githubusercontent.com"
+
+sboms:
+  - artifacts: archive
+    id: sbom
+    documents:
+      - "${artifact}.sbom"
