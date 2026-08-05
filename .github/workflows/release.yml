@@ -1,77 +1,157 @@
 name: Release SaaSKit
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 permissions:
+  contents: write
+  packages: write
   id-token: write
   attestations: write
 
-env:
-  GO_VERSION: "1.26.5"
-
 jobs:
   release:
-    name: Build and attest release
+    name: Build & Release SaaSKit
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
-      actions: read
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-      - name: Checkout release tag
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
 
-      - name: Verify dependencies
+      # -------------------------
+      # Go Setup
+      # -------------------------
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+
+      # -------------------------
+      # Security checks
+      # -------------------------
+
+      - name: Install security tools
         run: |
-          go mod download
-          go mod verify
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run vulnerability scan
+        run: |
+          govulncheck ./...
+
 
       - name: Run tests
         run: |
-          go test ./...
+          go test ./... -race -coverprofile=coverage.out
 
-      - name: Build SaaSKit
+
+      # -------------------------
+      # GoReleaser
+      # -------------------------
+
+      - name: Release binaries
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
+
+
+
+      # -------------------------
+      # Docker
+      # -------------------------
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Docker metadata
+        id: meta
         run: |
-          mkdir -p dist
+          VERSION=${GITHUB_REF_NAME#v}
 
-          CGO_ENABLED=0 go build \
-            -trimpath \
-            -ldflags="-s -w \
-            -X main.Version=${{ github.event.release.tag_name }}" \
-            -o dist/saaskit \
-            ./cmd/saaskit
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          echo "tags=\
+          ghcr.io/medaminerjb/saaskit:$VERSION,\
+          ghcr.io/medaminerjb/saaskit:${GITHUB_REF_NAME},\
+          ghcr.io/medaminerjb/saaskit:latest" >> $GITHUB_OUTPUT
+
+
+
+      - name: Build SaaSKit image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+          labels: |
+            org.opencontainers.image.source=https://github.com/medaminerjb/saaskit
+            org.opencontainers.image.description=SaaSKit multi-tenant SaaS infrastructure framework
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+
+
+
+      # -------------------------
+      # SBOM
+      # -------------------------
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        uses: anchore/sbom-action@v0
         with:
-          path: dist/saaskit
-          format: spdx-json
-          output-file: dist/sbom.spdx.json
+          image: ghcr.io/medaminerjb/saaskit:${{ steps.meta.outputs.version }}
 
-      - name: Create checksums
+
+
+      # -------------------------
+      # Cosign signing
+      # -------------------------
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+
+      - name: Sign container image
         run: |
-          cd dist
-          sha256sum * > checksums.txt
+          cosign sign \
+          --yes \
+          ghcr.io/medaminerjb/saaskit:${{ steps.meta.outputs.version }}
 
-      - name: Upload release artifacts
-        uses: softprops/action-gh-release@fe965f7af51af5f2602596916f38a38df2e33de0 # v3.0.2
-        with:
-          files: |
-            dist/saaskit
-            dist/checksums.txt
-            dist/sbom.spdx.json
 
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+
+      # -------------------------
+      # Build provenance
+      # -------------------------
+
+      - name: Generate provenance attestation
+        uses: actions/attest-build-provenance@v2
         with:
-          subject-path: dist/saaskit
+          subject-name: ghcr.io/medaminerjb/saaskit
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
