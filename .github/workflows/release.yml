@@ -1,0 +1,74 @@
+name: Release SaaSKit
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+env:
+  GO_VERSION: "1.26.5"
+
+jobs:
+  release:
+    name: Build and attest release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@11bd71901bbe5b163e6a6f4f4f5e3f7e8b3f8a0d # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Verify dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Run tests
+        run: |
+          go test ./...
+
+      - name: Build SaaSKit
+        run: |
+          mkdir -p dist
+
+          CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags="-s -w \
+            -X main.Version=${{ github.event.release.tag_name }}" \
+            -o dist/saaskit \
+            ./cmd/saaskit
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: dist/saaskit
+          format: spdx-json
+          output-file: dist/sbom.spdx.json
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+
+      - name: Upload release artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/saaskit
+            dist/checksums.txt
+            dist/sbom.spdx.json
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/saaskit
