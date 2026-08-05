@@ -5,7 +5,6 @@ on:
     types: [created]
 
 permissions:
-  contents: write
   id-token: write
   attestations: write
 
@@ -16,15 +15,19 @@ jobs:
   release:
     name: Build and attest release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@11bd71901bbe5b163e6a6f4f4f5e3f7e8b3f8a0d # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Setup Go
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -49,7 +52,7 @@ jobs:
             ./cmd/saaskit
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: dist/saaskit
           format: spdx-json
@@ -61,7 +64,7 @@ jobs:
           sha256sum * > checksums.txt
 
       - name: Upload release artifacts
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@fe965f7af51af5f2602596916f38a38df2e33de0 # v3.0.2
         with:
           files: |
             dist/saaskit
@@ -69,6 +72,6 @@ jobs:
             dist/sbom.spdx.json
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
           subject-path: dist/saaskit
