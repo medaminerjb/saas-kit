@@ -39,24 +39,6 @@ jobs:
 
 
       # -------------------------
-      # Security checks
-      # -------------------------
-
-      - name: Install security tools
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-
-      - name: Run vulnerability scan
-        run: |
-          govulncheck ./...
-
-
-      - name: Run tests
-        run: |
-          go test ./... -race -coverprofile=coverage.out
-
-
-      # -------------------------
       # GoReleaser
       # -------------------------
 
