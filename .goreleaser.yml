@@ -1,4 +1,6 @@
 # .goreleaser.yml configuration for SaaSKit
+version: 2
+
 before:
   hooks:
     - go mod tidy
@@ -24,8 +26,7 @@ builds:
       - -X main.Date={{.Date}}
 
 archives:
-  - format: tar.gz
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
         format: zip
@@ -53,9 +54,3 @@ signs:
       - "https://github.com/medaminerjb/saaskit/.github/workflows/release.yml@refs/tags/{{ .Tag }}"
       - "--certificate-oidc-issuer"
       - "https://token.actions.githubusercontent.com"
-
-sboms:
-  - artifacts: archive
-    id: sbom
-    documents:
-      - "${artifact}.sbom"
