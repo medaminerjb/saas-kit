@@ -46,7 +46,7 @@ The architecture treats developer interfaces (SDKs, CLI, Admin Console) as first
 | **`v0.3.0`** | **Phase 3** | Authorization & MFA | ✅ Completed | Tenant-scoped RBAC, TOTP, recovery codes, token grace rotation |
 | **`v0.4.0`** | **Phase 4** | Metadata & Extensible Identity | ✅ Completed | JSONB metadata, schema validation, GIN indexes, metadata events |
 | **`v0.5.0`** | **Phase 5** | API Keys & Event Schema | ✅ Completed | Tenant API Keys, public event model, webhook foundation |
-| **`v0.6.0`** | **Phase 6** | SDKs & Developer Tooling | 🟡 **OPEN** | Go SDK, JavaScript SDK, CLI enhancements |
+| **`v0.6.0`** | **Phase 6** | SDKs & Developer Tooling | ✅ Completed | Go SDK, JavaScript SDK, CLI enhancements |
 | **`v0.7.0`** | **Phase 7** | Admin Console v0.1 | 🟡 **OPEN** | Web UI for users, tenants, keys, audit logs |
 | **`v0.8.0`** | **Phase 8** | KMS & Security Hardening | 🟡 **OPEN** | Cloud KMS adapters, key rotation, security fixes |
 | **`v0.9.0`** | **Phase 9** | OpenID Certification Prep | 🟡 **OPEN** | OIDC conformance tests, compliance fixes, documentation |
@@ -151,14 +151,17 @@ The architecture treats developer interfaces (SDKs, CLI, Admin Console) as first
 
 ---
 
-### Phase 6 — SDKs & Developer Tooling 🟡
+### Phase 6 — SDKs & Developer Tooling ✅
 
-* **Status:** OPEN · **Release:** `v0.6.0`
+* **Status:** Completed · **Release:** `v0.6.0`
 
-* [ ] **Go SDK (`saaskit-go`)** — Strongly typed client library with retry controls and backoff algorithms
-* [ ] **JavaScript SDK (`saaskit-js`)** — Client library with login components and metadata helpers
-* [ ] **CLI Enhancements** — Improved `saaskit` CLI with API key management and tenant switching
-* [ ] **Developer Documentation** — SDK quickstarts and integration guides
+* [x] **Go SDK (`saaskit-go`)** — Strongly typed client library with retry controls and backoff algorithms
+* [x] **JavaScript SDK (`saaskit-js`)** — Client library with login components and metadata helpers
+* [x] **CLI Enhancements** — Improved `saaskit` CLI with API key management and tenant switching
+* [x] **Developer Documentation** — SDK quickstarts and integration guides
+
+**Known Issues:**
+- CLI `apikey revoke` command requires additional parameters (tenant ID, revoked by user ID) - use API for revocation operations
 
 ---
 
