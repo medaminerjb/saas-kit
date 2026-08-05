@@ -4,7 +4,9 @@ on:
   push:
     tags:
       - 'v*' # Trigger on any tag starting with v
-
+permissions:
+  contents: write
+  packages: write
 jobs:
   publish:
     name: Build & Publish Image
