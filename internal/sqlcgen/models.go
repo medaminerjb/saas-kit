@@ -208,6 +208,23 @@ func (ns NullUserStatus) Value() (driver.Value, error) {
 	return string(ns.UserStatus), nil
 }
 
+type ApiKey struct {
+	ID         uuid.UUID          `db:"id" json:"id"`
+	TenantID   uuid.UUID          `db:"tenant_id" json:"tenant_id"`
+	Name       string             `db:"name" json:"name"`
+	KeyPrefix  string             `db:"key_prefix" json:"key_prefix"`
+	KeyHash    string             `db:"key_hash" json:"key_hash"`
+	Scopes     []string           `db:"scopes" json:"scopes"`
+	Type       string             `db:"type" json:"type"`
+	Status     string             `db:"status" json:"status"`
+	ExpiresAt  pgtype.Timestamptz `db:"expires_at" json:"expires_at"`
+	LastUsedAt pgtype.Timestamptz `db:"last_used_at" json:"last_used_at"`
+	CreatedBy  uuid.UUID          `db:"created_by" json:"created_by"`
+	CreatedAt  time.Time          `db:"created_at" json:"created_at"`
+	RevokedAt  pgtype.Timestamptz `db:"revoked_at" json:"revoked_at"`
+	RevokedBy  pgtype.UUID        `db:"revoked_by" json:"revoked_by"`
+}
+
 type AuditLog struct {
 	ID        uuid.UUID      `db:"id" json:"id"`
 	TenantID  pgtype.UUID    `db:"tenant_id" json:"tenant_id"`
@@ -445,4 +462,27 @@ type User struct {
 	DeletedAt       pgtype.Timestamptz `db:"deleted_at" json:"deleted_at"`
 	MetadataPublic  []byte             `db:"metadata_public" json:"metadata_public"`
 	MetadataPrivate []byte             `db:"metadata_private" json:"metadata_private"`
+}
+
+type WebhookDelivery struct {
+	ID             uuid.UUID `db:"id" json:"id"`
+	SubscriptionID uuid.UUID `db:"subscription_id" json:"subscription_id"`
+	EventID        uuid.UUID `db:"event_id" json:"event_id"`
+	EventType      string    `db:"event_type" json:"event_type"`
+	StatusCode     *int32    `db:"status_code" json:"status_code"`
+	ErrorMessage   *string   `db:"error_message" json:"error_message"`
+	Success        bool      `db:"success" json:"success"`
+	AttemptedAt    time.Time `db:"attempted_at" json:"attempted_at"`
+}
+
+type WebhookSubscription struct {
+	ID         uuid.UUID          `db:"id" json:"id"`
+	TenantID   uuid.UUID          `db:"tenant_id" json:"tenant_id"`
+	Url        string             `db:"url" json:"url"`
+	Secret     *string            `db:"secret" json:"secret"`
+	EventTypes []string           `db:"event_types" json:"event_types"`
+	Status     string             `db:"status" json:"status"`
+	CreatedAt  time.Time          `db:"created_at" json:"created_at"`
+	UpdatedAt  time.Time          `db:"updated_at" json:"updated_at"`
+	LastUsedAt pgtype.Timestamptz `db:"last_used_at" json:"last_used_at"`
 }
