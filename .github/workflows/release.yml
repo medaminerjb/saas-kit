@@ -54,6 +54,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Sign checksums with Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign checksums
+        run: |
+          cosign sign-blob \
+            --yes \
+            --output=dist/saaskit_${{ github.ref_name }}_checksums.txt.sig \
+            dist/saaskit_${{ github.ref_name }}_checksums.txt
+
+      - name: Upload signed checksums
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f69875dd29fd09d2080600d9 # v4.6.0
+        with:
+          name: signed-checksums
+          path: |
+            dist/saaskit_${{ github.ref_name }}_checksums.txt
+            dist/saaskit_${{ github.ref_name }}_checksums.txt.sig
+
 
 
       # -------------------------
