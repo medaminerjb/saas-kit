@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
 
       - name: Run Scorecard
-        uses: ossf/scorecard-action@dc3772bde9cca7de94db5e1b65a0752ff85e3c56 # v2.4.0
+        uses: ossf/scorecard-action@55891bbd73f2425e97637d96e306fc9d491d0b21 # v2.4.4
         with:
           results_file: results.sarif
           publish_results: true
