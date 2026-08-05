@@ -17,6 +17,8 @@ SaaSKit provides the foundational infrastructure every multi-tenant SaaS applica
 - **Multi-tenant ready** — Multi-tenancy support with tenant creation, member roles (Owner, Admin, Manager, Member, Viewer), and secure invitation flows
 - **RBAC** — Role-based access control with granular permissions (tenant read/update, members invite/remove, metadata read/write)
 - **Extensible metadata** — JSONB metadata for users (public/private) and tenants with 32KB size constraints and GIN indexing
+- **API Keys** — Tenant-aware API keys with prefixing (`sk_live_`, `sk_test_`), scopes, and automatic context extraction
+- **Webhooks** — Webhook subscription model with HMAC-SHA256 signature verification and retry logic
 - **MFA** — TOTP (Time-based One-Time Password) with envelope encryption and recovery codes
 - **Audit logging** — append-only identity event audit trail
 - **Event-driven architecture** — publisher interface for future Kafka/NATS/Redis integration
@@ -82,6 +84,16 @@ make run-direct
 | `GET` | `/api/v1/tenants/{id}/members` | List organization members (requires membership) |
 | `POST` | `/api/v1/tenants/{id}/members` | Invite new member (requires admin/owner) |
 | `DELETE` | `/api/v1/tenants/{id}/members/{uid}` | Remove member / leave organization (requires admin/owner or self) |
+
+### API Keys (`/api/v1/`, requires auth)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/tenants/{id}/api-keys` | Create API key (requires admin/owner) |
+| `GET` | `/api/v1/tenants/{id}/api-keys` | List API keys (requires membership) |
+| `GET` | `/api/v1/tenants/{id}/api-keys/{keyId}` | Get API key details (requires membership) |
+| `POST` | `/api/v1/tenants/{id}/api-keys/{keyId}/revoke` | Revoke API key (requires admin/owner) |
+| `DELETE` | `/api/v1/tenants/{id}/api-keys/{keyId}` | Delete API key (requires admin/owner) |
 
 ### OIDC Provider (`/oidc/`)
 
