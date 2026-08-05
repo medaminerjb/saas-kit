@@ -2,9 +2,9 @@ name: Publish Docker Image
 
 on:
   push:
-    tags:
-      - 'v*' # Trigger on any tag starting with v
-
+    tags: |
+      type=raw,value={{tag}}
+      type=raw,value=latest
 permissions:
   contents: read
 
