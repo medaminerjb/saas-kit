@@ -240,6 +240,19 @@ SaaSKit is a community-driven project with transparent governance:
 | [Support](SUPPORT.md) | How to get help |
 | [Changelog](CHANGELOG.md) | Release history |
 
+## Security & Open Source Compliance
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/medaminerjb/saaskit/badge?style=flat)](https://securityscorecards.dev/viewer/?uri=github.com/medaminerjb/saaskit)
+
+SaaSKit follows security best practices for open-source projects:
+
+- **Security Policy**: See [SECURITY.md](SECURITY.md) for vulnerability reporting
+- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines
+- **Branch Protection**: Master branch requires PR reviews and status checks
+- **Dependencies**: All GitHub Actions and Docker images are pinned by SHA
+- **SAST**: CodeQL analysis runs on all pull requests and pushes to master
+- **Vulnerability Scanning**: govulncheck runs in CI for all commits
+
 ## License
 
 [Apache License 2.0](LICENSE)

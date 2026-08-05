@@ -8,8 +8,9 @@ We support security updates for the following versions:
 
 | Version | Supported | Notes |
 |---------|-----------|-------|
-| v0.1.x  | ✅ Yes    | Active Development (Developer Preview) |
-| < v0.1.0| ❌ No     | Development branches |
+| v0.5.x  | ✅ Yes    | Current Release |
+| v0.4.x  | ✅ Yes    | Previous Release |
+| < v0.4.0| ❌ No     | End of Life |
 
 We actively backport security fixes to the latest patch release of each supported minor version.
 

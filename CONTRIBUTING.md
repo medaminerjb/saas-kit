@@ -99,9 +99,17 @@ Format:
 - **Linting:** We use `golangci-lint` to enforce style and detect common errors.
 - **Testing:** Add unit tests for all new services, repositories, and helper functions. Ensure tests run with the race detector enabled (`go test -race ./...`).
 
+## 5. Security Expectations
+
+- **Vulnerability Scanning:** All code must pass `govulncheck` without critical or high-severity vulnerabilities.
+- **Secrets Management:** Never commit secrets, API keys, or credentials to the repository. Use environment variables or secret managers.
+- **Dependencies:** Keep dependencies up-to-date. Security-sensitive dependencies should be pinned by commit SHA in CI workflows.
+- **Code Review:** Security-related changes require additional review. Be mindful of authentication, authorization, and data handling.
+- **Fuzz Testing:** For security-critical components (crypto, parsing, validation), consider adding fuzz tests.
+
 ---
 
-## 5. Pull Request Process
+## 6. Pull Request Process
 
 1. **Create a Branch:** Keep your branches focused. Create a branch from `master` with a meaningful name:
    ```bash
