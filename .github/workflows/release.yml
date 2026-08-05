@@ -59,15 +59,15 @@ jobs:
       # -------------------------
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@49b3bc8e6dda4a8977600bea456c932b0a9609ac # v3.3.0
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
 
 
       - name: Setup Buildx
-        uses: docker/setup-buildx-action@b5e57e7c7db8d691c5e4c09ef6368d782a928d6f # v3.10.0
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
 
       - name: Login GHCR
-        uses: docker/login-action@9780b0c442fbb5b8788c0f751f4c8b67e896e3e7 # v3.3.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
