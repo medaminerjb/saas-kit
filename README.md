@@ -19,6 +19,9 @@ SaaSKit provides the foundational infrastructure every multi-tenant SaaS applica
 - **Extensible metadata** — JSONB metadata for users (public/private) and tenants with 32KB size constraints and GIN indexing
 - **API Keys** — Tenant-aware API keys with prefixing (`sk_live_`, `sk_test_`), scopes, and automatic context extraction
 - **Webhooks** — Webhook subscription model with HMAC-SHA256 signature verification and retry logic
+- **Go SDK** — Official Go client library with retry controls and exponential backoff
+- **JavaScript SDK** — Official TypeScript/JavaScript client library with React/Vue/Next.js integration
+- **CLI Tool** — Command-line interface for user, tenant, and API key management
 - **MFA** — TOTP (Time-based One-Time Password) with envelope encryption and recovery codes
 - **Audit logging** — append-only identity event audit trail
 - **Event-driven architecture** — publisher interface for future Kafka/NATS/Redis integration
@@ -213,9 +216,9 @@ See the [full roadmap](docs/roadmap.md) for detailed plans through v3.0.
 3. ✅ **Multi-Tenancy** — organizations, tenant isolation
 4. ✅ **Authorization** — RBAC, permissions middleware
 5. ✅ **Metadata** — extensible JSONB metadata for users and tenants
-6. 🟢 **API Keys & Events** — tenant API keys, public event schema, webhook foundation
-7. 🟡 **SDKs & Tooling** — Go/JavaScript SDKs, CLI enhancements
-8. 🟡 **Admin Console** — web UI for users, tenants, keys, audit logs
+6. ✅ **API Keys & Events** — tenant API keys, public event schema, webhook foundation
+7. ✅ **SDKs & Tooling** — Go/JavaScript SDKs, CLI enhancements
+8. � **Admin Console** — web UI for users, tenants, keys, audit logs
 9. 🟡 **Security Hardening** — KMS adapters, key rotation, security fixes
 10. 🟡 **OIDC Certification Prep** — conformance tests, compliance fixes
 11. 🟡 **OpenID Certified GA** — OpenID Foundation certification (v1.0.0)
