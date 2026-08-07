@@ -70,11 +70,11 @@ export class SaaSKitClient {
     };
 
     if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
     }
 
     if (this.config.apiKey) {
-      headers['X-API-Key'] = this.config.apiKey;
+      (headers as Record<string, string>)['X-API-Key'] = this.config.apiKey;
     }
 
     let lastError: Error | null = null;

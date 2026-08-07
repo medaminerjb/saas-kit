@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #e0f9f5;
+  --color-primary-100: #b3f0e3;
+  --color-primary-200: #80e7d0;
+  --color-primary-300: #4ddfbf;
+  --color-primary-400: #26d9b3;
+  --color-primary-500: #00c9a7;
+  --color-primary-600: #00b997;
+  --color-primary-700: #009d80;
+  --color-primary-800: #00836a;
+  --color-primary-900: #006b55;
+
+  --color-vytra-50: #e0f9f5;
+  --color-vytra-100: #b3f0e3;
+  --color-vytra-200: #80e7d0;
+  --color-vytra-300: #4ddfbf;
+  --color-vytra-400: #26d9b3;
+  --color-vytra-500: #00c9a7;
+  --color-vytra-600: #00b997;
+  --color-vytra-700: #009d80;
+  --color-vytra-800: #00836a;
+  --color-vytra-900: #006b55;
+
+  --animate-fade-in: fade-in 0.2s ease-out forwards;
+
+  @keyframes fade-in {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}

@@ -1,7 +1,8 @@
-export { SaaSKitClient, SaaSKitConfig, SaaSKitResponse, SaaSKitError } from './client';
-export { AuthClient, RegisterRequest, RegisterResponse, LoginRequest, LoginResponse, RefreshRequest, RefreshResponse, LogoutRequest, ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest } from './auth';
-export { UsersClient, User, UpdateUserRequest, Session } from './users';
-export { TenantsClient, Tenant, TenantWithRole, CreateTenantRequest, UpdateTenantRequest, SwitchTenantRequest, AcceptInvitationRequest, Member, InviteMemberRequest } from './tenants';
-export { MetadataClient, UserMetadata, UpdateUserMetadataRequest, TenantMetadata, UpdateTenantMetadataRequest } from './metadata';
+import { SaaSKitClient } from './client';
+import { AuthClient } from './auth';
+import { UsersClient } from './users';
+import { TenantsClient } from './tenants';
+import { MetadataClient } from './metadata';
 
-export default SaaSKitClient;
+export { SaaSKitClient, AuthClient, UsersClient, TenantsClient, MetadataClient };
+export { SaaSKitClient as default };
