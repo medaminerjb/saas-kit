@@ -14,7 +14,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.5
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli/v2 v2.27.5
-	github.com/zitadel/oidc/v3 v3.48.1
+	github.com/zitadel/oidc/v3 v3.49.1
 	golang.org/x/crypto v0.54.0
 	golang.org/x/oauth2 v0.36.0
 	golang.org/x/text v0.40.0
